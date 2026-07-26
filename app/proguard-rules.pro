@@ -1,0 +1,4 @@
+-keep class dev.jpeng.rinstaller.service.PrivilegedInstallerService { *; }
+-keep class dev.jpeng.rinstaller.IPrivilegedInstaller { *; }
+-keep class dev.jpeng.rinstaller.IPrivilegedInstaller$Stub { *; }
+-keepattributes *Annotation*
