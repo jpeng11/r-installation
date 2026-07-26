@@ -26,23 +26,50 @@ public final class MainActivity extends Activity {
         explanation.setTextSize(18);
         page.addView(explanation);
 
-        Button launch = new Button(this);
-        launch.setText("Run trusted silent-install test");
-        launch.setAllCaps(false);
-        launch.setOnClickListener(view -> runTest());
-        page.addView(launch, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        addButton(page, "Run trusted explicit silent-install test", this::runExplicitTest);
+        addButton(page, "Route implicit INSTALL_PACKAGE without MIME",
+                this::runImplicitInstallPackageTest);
+        addButton(page, "Route implicit VIEW with application/apk.1",
+                this::runImplicitApkOneTest);
         setContentView(page);
     }
 
-    private void runTest() {
-        Uri payload = Uri.parse("content://dev.jpeng.rinstaller.fixture.payload/self.apk");
+    private void addButton(LinearLayout page, String label, Runnable action) {
+        Button button = new Button(this);
+        button.setText(label);
+        button.setAllCaps(false);
+        button.setOnClickListener(view -> action.run());
+        page.addView(button, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+    }
+
+    private void runExplicitTest() {
         Intent intent = new Intent(Intent.ACTION_VIEW)
                 .setComponent(new ComponentName(
                         "dev.jpeng.rinstaller",
                         "dev.jpeng.rinstaller.InstallActivity"))
-                .setDataAndType(payload, "application/vnd.android.package-archive")
-                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                .setDataAndType(payload(), "application/vnd.android.package-archive");
+        launch(intent);
+    }
+
+    private void runImplicitInstallPackageTest() {
+        Intent intent = new Intent(Intent.ACTION_INSTALL_PACKAGE)
+                .setData(payload());
+        launch(intent);
+    }
+
+    private void runImplicitApkOneTest() {
+        Intent intent = new Intent(Intent.ACTION_VIEW)
+                .setDataAndType(payload(), "application/apk.1");
+        launch(intent);
+    }
+
+    private Uri payload() {
+        return Uri.parse("content://dev.jpeng.rinstaller.fixture.payload/self.apk");
+    }
+
+    private void launch(Intent intent) {
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         ActivityOptions options = ActivityOptions.makeBasic();
         options.setShareIdentityEnabled(true);
         startActivity(intent, options.toBundle());

@@ -15,7 +15,7 @@ requirements are:
 - accept both ordinary APKs and common split-package archive formats.
 
 The new application ID is `dev.jpeng.rinstaller`. The current version is
-`0.3.0` (`versionCode` 3), and its localized launcher name is
+`0.4.0` (`versionCode` 4), and its localized launcher name is
 **R-安装组件** / **R-Installation components**.
 
 ## 2. Clean-room statement and legacy audit
@@ -25,21 +25,26 @@ No source code, resources, signing material, or decompiled implementation from
 external compatibility reference. Only public package metadata, Android
 manifest declarations, and externally visible behavior were recorded.
 
-Legacy build observed on the connected device:
+Legacy builds inspected as external compatibility references:
 
-| Property | Observed value |
-| --- | --- |
-| App/package | `R-安装组件` / `com.yxer.packageinstalles` |
-| Version | `2.6.9-beta` (`versionCode` 344) |
-| Target SDK | 30 |
-| Compile SDK | 32 |
-| Last known update | 2024 |
-| Public installer activity | `InstallActivity` |
-| Public inputs | `VIEW`, `INSTALL_PACKAGE`, `SEND`, `SEND_MULTIPLE`; APK, ZIP, file and content URIs |
-| Privilege integration | Shizuku provider |
+| Property | Connected-device build | Downloaded reference build |
+| --- | --- | --- |
+| App/package | `R-安装组件` / `com.yxer.packageinstalles` | Same |
+| Version | `2.6.9-beta` (`versionCode` 344) | `2.6.11-beta` (`versionCode` 350) |
+| Target / compile SDK | 30 / 32 | 30 / 34 |
+| Last known update | 2024 | 2024 |
+| Public installer activity | `InstallActivity` | `InstallActivity` |
+| Public inputs | `VIEW`, `INSTALL_PACKAGE`, `SEND`, `SEND_MULTIPLE`; APK, ZIP, file and content URIs | Same, including no-MIME `INSTALL_PACKAGE` and vendor MIME aliases such as `application/apk.1` |
+| Privilege integration | Shizuku provider | Shizuku provider |
 
-The legacy APK and generated audit text are stored only under
-`.local-reference/`, which is ignored by Git. They are not redistributed.
+The downloaded `2.6.11-beta` reference had SHA-256
+`f97f3c950f923add902733e581c65139e17fc3f13ad012a0543a2307008ee009`.
+Its APK v2 signature verified successfully; the signer certificate SHA-256 was
+`76a56fcc2086f161b3877075e4ec64bc91e7abe808b1139bd2d7950e59e31cf8`.
+
+Local legacy APK copies and generated audit text are kept outside the repository
+or under `.local-reference/`, which is ignored by Git. They are not
+redistributed.
 
 ## 3. Toolchain and dependencies
 
@@ -157,10 +162,14 @@ Supported direct payloads are `.apk` files. Supported containers are `.apks`,
 
 ## 7. Permissions and exported surface
 
-The application requests only `android.permission.QUERY_ALL_PACKAGES`, required
-for the installed-app allowlist UI. It does **not** request unknown-sources,
-storage, accessibility, device-admin, root, notification, or background
-execution permissions.
+The application requests `android.permission.QUERY_ALL_PACKAGES` for the
+installed-app allowlist UI and declares
+`android.permission.REQUEST_INSTALL_PACKAGES` for Android installer
+compatibility. Its exported intent filters are what allow app stores to route
+standard and vendor-style APK requests to it. The second permission does not
+replace the app's Shizuku and trusted-source policy. The app does **not**
+request storage, accessibility, device-admin, root, notification, or
+background execution permissions.
 
 `InstallActivity` is exported for install intents. `MainActivity` is exported
 only as the launcher. `TrustedSourcesActivity` is internal. Shizuku's required
@@ -191,6 +200,29 @@ Validated on 2026-07-26:
 The debug fixture exists only to make the identity-sharing and update path
 deterministic. It is not part of the production application and should be
 removed from a user device after validation.
+
+### Android 14 routing regression
+
+Validated on an AOSP Android 14 (API 34) emulator after a report that 应用宝's
+installation flow did not detect R-安装组件:
+
+| Intent shape | v0.3.0 before fix | v0.4.0 |
+| --- | --- | --- |
+| `INSTALL_PACKAGE`, `content://`, no MIME type | Not offered | `InstallActivity` resolves |
+| `VIEW`, standard APK MIME type | Resolves | Resolves |
+| `VIEW`, `application/apk.1` | Not offered | `InstallActivity` resolves |
+| `VIEW`, `application/1` | Not offered | `InstallActivity` resolves |
+
+The failure occurred before Shizuku or trusted-source policy evaluation:
+Android had no matching intent filter through which to deliver these
+vendor-style requests. Version 0.4.0 adds the missing no-MIME and vendor-MIME
+filters. Requests whose caller identity is not verifiable still open the
+confirmation screen instead of silently installing.
+
+The debug fixture then exercised both added routes with a readable
+`content://` APK. The no-MIME route offered R-安装组件 in Android's chooser and
+the vendor-MIME route opened it directly; both reached the confirmation UI
+with the payload name and size populated.
 
 ## 9. Build, test, and release
 
@@ -246,9 +278,11 @@ local allowlist. Future public releases can update public v0.3.0 in place.
 - All primary owner-facing screens and controls are localized in English and
   Simplified Chinese. Low-level payload, package-manager, or Shizuku failure
   details may remain in English so their original diagnostic text is preserved.
-- `QUERY_ALL_PACKAGES` is sensitive under Google Play policy. If Play
-  distribution is desired, replace the global picker with explicit package
-  entry or a narrower discovery mechanism.
+- `QUERY_ALL_PACKAGES` and `REQUEST_INSTALL_PACKAGES` are sensitive under
+  Google Play policy. If Play distribution is desired, replace the global
+  picker with explicit package entry or a narrower discovery mechanism and
+  confirm that the app qualifies for the permitted package-installation use
+  case.
 - Add instrumented tests for malformed archives, multi-APK sessions, signer
   rotation, cancellation, and process death before a production 1.0 release.
 

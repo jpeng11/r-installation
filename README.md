@@ -36,8 +36,10 @@ build before installing the first public release.
   `ACTION_SEND_MULTIPLE` input.
 - Single-APK and split-package installation through a Shizuku user service.
 - Confirmation UI for requests that do not satisfy the silent-install policy.
-- Only one app permission: package visibility, used to display the source-app
-  picker.
+- Package visibility is used to display the source-app picker.
+- Android’s install-request permission and compatibility intent filters let app
+  stores route standard and vendor-style APK requests to R-安装组件; actual
+  installation still uses Shizuku and the trusted-source policy.
 
 ## Build
 
