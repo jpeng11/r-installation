@@ -79,19 +79,26 @@ final class PayloadPreparer {
                 }
             }
         }
-        Uri stream = Build.VERSION.SDK_INT >= 33
-                ? intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri.class)
-                : intent.getParcelableExtra(Intent.EXTRA_STREAM);
-        if (stream != null) {
-            uris.add(stream);
-        }
-        ArrayList<Uri> streams = Build.VERSION.SDK_INT >= 33
-                ? intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri.class)
-                : intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
-        if (streams != null) {
-            uris.addAll(streams);
+        if (expectsMultipleStreams(intent.getAction())) {
+            ArrayList<Uri> streams = Build.VERSION.SDK_INT >= 33
+                    ? intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri.class)
+                    : intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+            if (streams != null) {
+                uris.addAll(streams);
+            }
+        } else {
+            Uri stream = Build.VERSION.SDK_INT >= 33
+                    ? intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri.class)
+                    : intent.getParcelableExtra(Intent.EXTRA_STREAM);
+            if (stream != null) {
+                uris.add(stream);
+            }
         }
         return new ArrayList<>(uris);
+    }
+
+    static boolean expectsMultipleStreams(String action) {
+        return Intent.ACTION_SEND_MULTIPLE.equals(action);
     }
 
     static PreparedPayload prepare(Context context, List<Uri> uris) throws IOException {
@@ -107,10 +114,13 @@ final class PayloadPreparer {
         try {
             for (Uri uri : uris) {
                 String displayName = displayName(context, uri);
-                if (isArchive(displayName, context.getContentResolver().getType(uri))) {
+                String mimeType = context.getContentResolver().getType(uri);
+                if (isArchive(displayName, mimeType)) {
                     extractArchive(context, uri, temporaryDirectory, files);
                 } else {
-                    File destination = new File(temporaryDirectory, uniqueName(files, sanitize(displayName, "base.apk")));
+                    String directName = directPayloadName(displayName);
+                    File destination = new File(
+                            temporaryDirectory, uniqueName(files, directName));
                     copyUri(context, uri, destination);
                     files.add(destination);
                 }
@@ -228,13 +238,21 @@ final class PayloadPreparer {
         return segment == null ? "base.apk" : segment;
     }
 
-    private static boolean isArchive(String name, String mimeType) {
-        String lower = name.toLowerCase(Locale.ROOT);
+    static boolean isArchive(String name, String ignoredMimeType) {
+        // APKs are ZIP files and several app stores report them as application/zip.
+        // Only an explicit container suffix is reliable enough to trigger extraction.
+        String lower = name == null ? "" : name.toLowerCase(Locale.ROOT);
         return lower.endsWith(".apks")
                 || lower.endsWith(".apkm")
                 || lower.endsWith(".xapk")
-                || lower.endsWith(".zip")
-                || "application/zip".equals(mimeType);
+                || lower.endsWith(".zip");
+    }
+
+    static String directPayloadName(String displayName) {
+        String sanitized = sanitize(displayName, "base.apk");
+        return sanitized.toLowerCase(Locale.ROOT).endsWith(".apk")
+                ? sanitized
+                : "base.apk";
     }
 
     private static String sanitize(String value, String fallback) {
