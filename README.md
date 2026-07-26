@@ -58,6 +58,12 @@ Shizuku installation.
 adb install -r -t app/build/outputs/apk/debug/app-debug.apk
 ```
 
+GitHub Actions runs the same tests, lint, and debug build for pushes and pull
+requests. Pushes to `main` also produce a signed APK in the workflow artifacts,
+and a `v*` tag attaches the signed APK and checksum to its GitHub Release.
+Release signing uses protected repository secrets; the private key is never
+stored in the repository or workflow artifacts.
+
 Open R Installer Next, grant its Shizuku authorization, then open **Manage
 trusted source apps** and select the app store or file manager that should be
 allowed to request silent installs.
