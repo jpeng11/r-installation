@@ -16,17 +16,23 @@ Download the latest signed APK from
 [GitHub Releases](https://github.com/jpeng11/r-installation/releases/latest).
 The APK and its SHA-256 checksum are published together.
 
-The public v0.3.0 APK uses the permanent release certificate. Android cannot
-update a debug-signed development build with it, so uninstall any development
-build before installing the first public release.
+The latest published release may lag the current development version; check the
+release notes before testing app-store routing. The public APK uses the
+permanent release certificate. Android cannot update a debug-signed development
+build with it, so uninstall any development build before installing the first
+public release.
 
 ## Features
 
 - Android 16 target (`compileSdk`/`targetSdk` 36), Android 9 minimum.
 - Searchable trusted-source list; any currently installed app can be added.
-- Familiar R-安装组件 card layout, dark-mode support, app icons, and switches.
-- Complete English and Simplified Chinese UI with an in-app language selector
-  for System default, English, or 简体中文.
+- Familiar R-安装组件 state cards, preference-style Settings screen, app icons,
+  and switches.
+- Complete English, Simplified Chinese, and Traditional Chinese UI with an
+  in-app language selector.
+- System, light, and dark appearance choices.
+- In-place Shizuku authorization/recovery and retry without losing the APK
+  selected by an app store.
 - Trusted-source search matches the displayed app name (including Chinese
   names such as 应用宝) as well as the package ID.
 - SHA-256 signing-certificate pinning for every trusted source.
@@ -36,6 +42,7 @@ build before installing the first public release.
   `ACTION_SEND_MULTIPLE` input.
 - Single-APK and split-package installation through a Shizuku user service.
 - Confirmation UI for requests that do not satisfy the silent-install policy.
+- Master silent-install and completion-message settings.
 - Package visibility is used to display the source-app picker.
 - Android’s install-request permission and compatibility intent filters let app
   stores route standard and vendor-style APK requests to R-安装组件; actual
@@ -66,13 +73,14 @@ adb install -r -t fixture-source/build/outputs/apk/debug/fixture-source-debug.ap
 
 ## Security boundary
 
-An install starts automatically only if all four conditions are true:
+An install starts automatically only if all five conditions are true:
 
-1. Android verifies the request identity.
-2. The package is present in the user's allowlist.
-3. Its current signing certificate matches the certificate pinned when it was
+1. The owner has enabled silent installation in Settings.
+2. Android verifies the request identity.
+3. The package is present in the user's allowlist.
+4. Its current signing certificate matches the certificate pinned when it was
    approved.
-4. Shizuku is running and permission is granted.
+5. Shizuku is running and permission is granted.
 
 Everything else requires an explicit tap. See [project.md](project.md) for the
 architecture, threat model, compatibility notes, test record, and release

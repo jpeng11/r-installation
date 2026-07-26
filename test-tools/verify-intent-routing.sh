@@ -31,6 +31,19 @@ assert_contains() {
         || fail "${context}: expected to find '${needle}'"
 }
 
+assert_contains_any() {
+    local haystack="$1"
+    local context="$2"
+    shift 2
+    local needle
+    for needle in "$@"; do
+        if [[ "${haystack}" == *"${needle}"* ]]; then
+            return 0
+        fi
+    done
+    fail "${context}: none of the expected values were found"
+}
+
 query_route() {
     local action="$1"
     local mime_type="${2:-}"
@@ -103,10 +116,12 @@ adb_command shell am start -W \
 wait_for_resumed_activity
 
 ui_dump="$(dump_ui)"
-assert_contains "${ui_dump}" "Confirmation is required for this request." \
-    "untrusted app-store confirmation state"
 assert_contains "${ui_dump}" "Allowlist: not trusted" \
     "untrusted source identity"
 assert_contains "${ui_dump}" "Cancel" "confirmation controls"
+assert_contains_any "${ui_dump}" "installer primary action" \
+    "Install with Shizuku" \
+    "Authorize Shizuku" \
+    "Open Shizuku"
 
 echo "PASS: app-store intent routes and untrusted-source confirmation UI"

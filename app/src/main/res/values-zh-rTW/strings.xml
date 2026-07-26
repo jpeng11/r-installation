@@ -1,0 +1,127 @@
+<resources>
+    <string name="app_name">R-安裝元件</string>
+    <string name="back">返回</string>
+    <string name="settings">設定</string>
+    <string name="about">關於</string>
+    <string name="language_settings_title">設定 · 語言</string>
+    <string name="language_system">跟隨系統</string>
+    <string name="language_english">English</string>
+    <string name="language_chinese">簡體中文</string>
+    <string name="language_traditional_chinese">繁體中文</string>
+    <string name="language_settings_row">語言</string>
+    <string name="close">關閉</string>
+    <string name="manage">管理</string>
+    <string name="shizuku_authorized">R-安裝元件 已授權</string>
+    <string name="shizuku_not_authorized">R-安裝元件 未授權</string>
+    <string name="shizuku_not_running">R-安裝元件 未執行</string>
+    <string name="shizuku_type">類型 Shizuku（ADB），UID %1$d</string>
+    <string name="shizuku_tap">輕觸以透過 Shizuku 授權</string>
+    <string name="shizuku_start_tap">輕觸以開啟並啟動 Shizuku</string>
+    <string name="silent_install_title">靜默安裝</string>
+    <string name="manage_authorized_apps">輕觸以管理已授權的應用程式</string>
+    <string name="choose_package_title">選擇安裝套件</string>
+    <string name="choose_package_summary">支援 APK、APKS、APKM、XAPK 和 ZIP</string>
+    <string name="install_package">安裝應用程式</string>
+    <string name="search_app_name">搜尋應用程式名稱</string>
+    <string name="search_helper">%1$s · 可依顯示的應用程式名稱或套件名稱搜尋</string>
+    <string name="loading_apps">正在載入已安裝的應用程式…</string>
+    <string name="cannot_pin_certificate">無法固定此應用程式的簽署憑證。</string>
+    <string name="start_shizuku_first">請先啟動 Shizuku。</string>
+    <string name="shizuku_permission_not_granted">未授予 Shizuku 權限。</string>
+    <string name="shizuku_permission_denied">Shizuku 權限已被永久拒絕。請在 Shizuku 的已授權應用程式中啟用本應用程式。</string>
+    <string name="shizuku_error">Shizuku 錯誤：%1$s</string>
+    <string name="about_message">適用於 Android 16、使用 Shizuku 的現代安裝元件。只有身分已驗證且簽署憑證經你核准的應用程式才能靜默安裝。</string>
+    <string name="source">來源</string>
+    <string name="resolving_source">正在識別來源…</string>
+    <string name="payload">安裝套件</string>
+    <string name="preparing_payload">正在準備 APK 安裝套件…</string>
+    <string name="allow_downgrade">允許降級安裝</string>
+    <string name="install_with_shizuku">使用 Shizuku 安裝</string>
+    <string name="open_shizuku">開啟 Shizuku</string>
+    <string name="authorize_shizuku">授權 Shizuku</string>
+    <string name="authorizing_shizuku">正在要求 Shizuku 授權…</string>
+    <string name="shizuku_start_and_return">請啟動 Shizuku，然後返回此處。此安裝套件會保持就緒。</string>
+    <string name="shizuku_not_installed">尚未安裝 Shizuku。請安裝並啟動 Shizuku 服務，然後返回此處。此安裝套件會保持就緒。</string>
+    <string name="shizuku_unable_to_open">無法開啟 Shizuku。</string>
+    <string name="shizuku_permission_required_here">Shizuku 正在執行。請授權本應用程式以繼續。</string>
+    <string name="shizuku_waiting_for_permission">正在等待 Shizuku 授權…</string>
+    <string name="preparing_payload_button">正在準備安裝套件…</string>
+    <string name="retry_payload">重新載入安裝套件</string>
+    <string name="retry_installation">重試安裝</string>
+    <string name="cancel">取消</string>
+    <string name="source_identity_summary">%1$s\n身分：%2$s\n允許清單：%3$s</string>
+    <string name="identity_verified">已驗證</string>
+    <string name="identity_not_verified">未驗證</string>
+    <string name="source_trusted">已信任</string>
+    <string name="source_not_trusted">未信任</string>
+    <string name="trusted_request_automatic">可信任的要求：安裝將自動開始。</string>
+    <string name="confirmation_required">此要求需要你確認。</string>
+    <string name="payload_part">%1$s · %2$d B\n</string>
+    <string name="shizuku_not_ready">Shizuku 尚未就緒。請開啟主畫面並授予權限。</string>
+    <string name="unable_to_prepare_payload">無法準備安裝套件</string>
+    <string name="payload_preparation_failed">無法準備此安裝套件：%1$s</string>
+    <string name="installing_silently">可信任的來源已驗證，正在靜默安裝…</string>
+    <string name="installing_with_shizuku">正在使用 Shizuku 安裝…</string>
+    <string name="installation_failed_retry">%1$s\n輕觸「重試安裝」以再次嘗試。</string>
+    <string name="no_error_details">未提供錯誤詳細資料。</string>
+    <string name="shizuku_error_prefix">Shizuku 錯誤：</string>
+    <string name="installation_completed">安裝完成。</string>
+    <string name="unknown_source">未知來源</string>
+    <string name="source_description">%1$s · %2$s</string>
+    <string name="method_os_caller">系統呼叫端</string>
+    <string name="method_result_caller">結果呼叫端</string>
+    <string name="method_content_provider">內容提供者</string>
+    <string name="method_referrer">未驗證的參照來源</string>
+    <string name="method_unknown">未知方式</string>
+    <string name="settings_category_installation">安裝</string>
+    <string name="settings_category_language">語言</string>
+    <string name="settings_category_appearance">外觀</string>
+    <string name="settings_category_storage">儲存空間</string>
+    <string name="settings_category_about">關於</string>
+    <string name="settings_backend_title">安裝後端</string>
+    <string name="settings_backend_ready">Shizuku 已就緒並取得授權</string>
+    <string name="settings_backend_not_ready">Shizuku 尚未就緒 · 輕觸以開啟 Shizuku</string>
+    <string name="settings_shizuku_missing">尚未安裝 Shizuku。請安裝並啟動 Shizuku 服務，然後返回此處授權 R-安裝元件。</string>
+    <string name="settings_completion_toast_title">顯示完成訊息</string>
+    <string name="settings_completion_toast_summary">安裝完成後顯示簡短訊息</string>
+    <string name="settings_silent_install_title">靜默安裝</string>
+    <string name="settings_silent_install_summary">允許已驗證且經你核准的來源應用程式自動安裝</string>
+    <string name="settings_trusted_sources_title">已核准的來源應用程式</string>
+    <string name="settings_trusted_sources_summary">依應用程式名稱或套件名稱搜尋，並選擇哪些應用程式可靜默安裝</string>
+    <string name="settings_default_installer_title">預設安裝程式</string>
+    <string name="settings_default_installer_summary">安裝程式預設值和選擇器由 Android 管理</string>
+    <string name="settings_default_installer_guidance">Android 會決定提供哪些相容的安裝程式。下次應用程式商店要求安裝 APK 時，請選擇 R-安裝元件。如果 Android 提供「一律」選項，請選取該選項以記住你的選擇。本應用程式無法在背景將自己設為預設安裝程式。</string>
+    <string name="settings_open_app_info">開啟應用程式資訊</string>
+    <string name="settings_appearance_title">深色主題</string>
+    <string name="appearance_system">跟隨系統</string>
+    <string name="appearance_light">淺色</string>
+    <string name="appearance_dark">深色</string>
+    <string name="settings_clear_cache_title">清除暫存安裝套件</string>
+    <string name="settings_clear_cache_summary">只移除此應用程式建立的暫存 APK 複本</string>
+    <string name="settings_clearing_cache">正在清除暫存安裝套件…</string>
+    <string name="settings_about_summary">版本 %1$s</string>
+    <string name="settings_about_message">R-安裝元件 %1$s\n\n這是一款適用於 Android 9–16、使用 Shizuku 的無塵室安裝程式。只有身分已驗證且簽署憑證經你核准的來源應用程式才能自動安裝。</string>
+    <string name="settings_support_title">支援與意見回饋</string>
+    <string name="settings_support_summary">在 GitHub 上開啟專案</string>
+    <string name="settings_unable_to_open">沒有可開啟此頁面的應用程式。</string>
+    <string-array name="language_options">
+        <item>@string/language_system</item>
+        <item>@string/language_english</item>
+        <item>@string/language_chinese</item>
+        <item>@string/language_traditional_chinese</item>
+    </string-array>
+    <string-array name="appearance_options">
+        <item>@string/appearance_system</item>
+        <item>@string/appearance_light</item>
+        <item>@string/appearance_dark</item>
+    </string-array>
+    <plurals name="authorized_apps">
+        <item quantity="other">已允許 %d 個應用程式靜默安裝</item>
+    </plurals>
+    <plurals name="payload_summary">
+        <item quantity="other">%1$d 個 APK 部件 · %2$d B</item>
+    </plurals>
+    <plurals name="settings_cache_removed">
+        <item quantity="other">已移除 %d 個暫存安裝套件資料夾。</item>
+    </plurals>
+</resources>

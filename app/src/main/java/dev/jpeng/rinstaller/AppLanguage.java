@@ -14,6 +14,7 @@ final class AppLanguage {
     static final String SYSTEM = "";
     static final String ENGLISH = "en";
     static final String SIMPLIFIED_CHINESE = "zh-CN";
+    static final String TRADITIONAL_CHINESE = "zh-TW";
 
     private static final String PREFERENCES = "app_settings";
     private static final String LANGUAGE = "language";
@@ -53,10 +54,18 @@ final class AppLanguage {
     }
 
     static int indexForTag(String tag) {
-        if (tag != null && tag.toLowerCase(Locale.ROOT).startsWith("zh")) {
+        String normalized = tag == null ? "" : tag.toLowerCase(Locale.ROOT);
+        if (normalized.startsWith("zh")
+                && (normalized.contains("-hant")
+                || normalized.contains("-tw")
+                || normalized.contains("-hk")
+                || normalized.contains("-mo"))) {
+            return 3;
+        }
+        if (normalized.startsWith("zh")) {
             return 2;
         }
-        if (tag != null && tag.toLowerCase(Locale.ROOT).startsWith("en")) {
+        if (normalized.startsWith("en")) {
             return 1;
         }
         return 0;
@@ -66,6 +75,7 @@ final class AppLanguage {
         return switch (index) {
             case 1 -> ENGLISH;
             case 2 -> SIMPLIFIED_CHINESE;
+            case 3 -> TRADITIONAL_CHINESE;
             default -> SYSTEM;
         };
     }

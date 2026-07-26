@@ -7,9 +7,11 @@ final class InstallPolicy {
             boolean identityVerified,
             boolean packageAllowlisted,
             boolean signingCertificateMatches,
-            boolean shizukuReady
+            boolean shizukuReady,
+            boolean silentInstallEnabled
     ) {
-        return identityVerified
+        return silentInstallEnabled
+                && identityVerified
                 && packageAllowlisted
                 && signingCertificateMatches
                 && shizukuReady;

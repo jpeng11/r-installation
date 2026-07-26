@@ -7,7 +7,9 @@
     <color name="text_primary">#202124</color>
     <color name="text_secondary">#68676D</color>
     <color name="status_blue">#2E8CC6</color>
+    <color name="status_red">#F0443A</color>
     <color name="icon_blue">#168CE1</color>
+    <color name="icon_red">#FCE8E7</color>
     <color name="icon_indigo">#3F51B5</color>
     <color name="icon_teal">#607D8B</color>
     <color name="icon_foreground">#E8F1FF</color>

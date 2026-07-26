@@ -1,12 +1,16 @@
 package dev.jpeng.rinstaller;
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.View;
 import android.view.MenuItem;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -24,6 +28,11 @@ public final class MainActivity extends LocalizedActivity {
     private TextView status;
     private TextView statusDetail;
     private TextView trustedCount;
+    private LinearLayout statusCard;
+    private LinearLayout trustedCard;
+    private LinearLayout installCard;
+    private FrameLayout statusIconCircle;
+    private ImageView statusIcon;
 
     private final Shizuku.OnBinderReceivedListener binderReceivedListener = this::refreshStatus;
     private final Shizuku.OnBinderDeadListener binderDeadListener = this::refreshStatus;
@@ -71,7 +80,7 @@ public final class MainActivity extends LocalizedActivity {
                 .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
         toolbar.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == MENU_SETTINGS) {
-                showSettings();
+                startActivity(new Intent(this, SettingsActivity.class));
             } else {
                 showAbout();
             }
@@ -90,7 +99,7 @@ public final class MainActivity extends LocalizedActivity {
         root.addView(scroll, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
 
-        LinearLayout statusCard = Ui.homeCard(
+        statusCard = Ui.homeCard(
                 this,
                 R.drawable.bg_status_card,
                 R.drawable.bg_icon_blue,
@@ -99,13 +108,15 @@ public final class MainActivity extends LocalizedActivity {
                 "",
                 view -> requestShizuku());
         LinearLayout statusCopy = (LinearLayout) statusCard.getChildAt(1);
+        statusIconCircle = (FrameLayout) statusCard.getChildAt(0);
+        statusIcon = (ImageView) statusIconCircle.getChildAt(0);
         status = (TextView) statusCopy.getChildAt(0);
         statusDetail = (TextView) statusCopy.getChildAt(1);
         status.setTextColor(Color.WHITE);
         statusDetail.setTextColor(Color.rgb(212, 240, 255));
         page.addView(statusCard, cardParams(0));
 
-        LinearLayout trustedCard = Ui.homeCard(
+        trustedCard = Ui.homeCard(
                 this,
                 R.drawable.bg_home_card,
                 R.drawable.bg_icon_indigo,
@@ -117,7 +128,7 @@ public final class MainActivity extends LocalizedActivity {
         trustedCount = (TextView) trustedCopy.getChildAt(0);
         page.addView(trustedCard, cardParams(8));
 
-        LinearLayout installCard = Ui.homeCard(
+        installCard = Ui.homeCard(
                 this,
                 R.drawable.bg_home_card,
                 R.drawable.bg_icon_teal,
@@ -126,6 +137,16 @@ public final class MainActivity extends LocalizedActivity {
                 getString(R.string.choose_package_summary),
                 view -> chooseDocument());
         page.addView(installCard, cardParams(8));
+
+        LinearLayout supportCard = Ui.homeCard(
+                this,
+                R.drawable.bg_home_card,
+                R.drawable.bg_icon_teal,
+                R.drawable.ic_help,
+                getString(R.string.settings_support_title),
+                getString(R.string.settings_support_summary),
+                view -> openSupport());
+        page.addView(supportCard, cardParams(8));
     }
 
     private LinearLayout.LayoutParams cardParams(int topMargin) {
@@ -135,40 +156,51 @@ public final class MainActivity extends LocalizedActivity {
         return params;
     }
 
-    private void showSettings() {
-        new android.app.AlertDialog.Builder(this)
-                .setTitle(R.string.language_settings_title)
-                .setSingleChoiceItems(
-                        R.array.language_options,
-                        AppLanguage.selectedIndex(this),
-                        (dialog, which) -> {
-                            dialog.dismiss();
-                            AppLanguage.select(this, which);
-                        })
-                .setNegativeButton(R.string.close, null)
-                .show();
-    }
-
     private void showAbout() {
         new android.app.AlertDialog.Builder(this)
-                .setTitle(R.string.about)
-                .setMessage(R.string.about_message)
-                .setPositiveButton(R.string.manage, (dialog, which) ->
-                        startActivity(new Intent(this, TrustedSourcesActivity.class)))
-                .setNegativeButton(R.string.close, null)
+                .setTitle(R.string.app_name)
+                .setMessage(getString(
+                        R.string.settings_about_message,
+                        BuildConfig.VERSION_NAME))
+                .setPositiveButton(R.string.close, null)
                 .show();
     }
 
     private void refreshStatus() {
         runOnUiThread(() -> {
-            boolean ready = ShizukuBridge.isReady();
-            status.setText(ready
-                    ? R.string.shizuku_authorized
-                    : R.string.shizuku_not_authorized);
-            statusDetail.setText(ready
-                    ? getString(R.string.shizuku_type, Shizuku.getUid())
-                    : getString(R.string.shizuku_tap));
-            int count = new TrustedStore(this).packages().size();
+            boolean running;
+            boolean authorized;
+            try {
+                running = Shizuku.pingBinder();
+                authorized = running
+                        && Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED;
+            } catch (RuntimeException exception) {
+                running = false;
+                authorized = false;
+            }
+
+            statusCard.setBackgroundResource(authorized
+                    ? R.drawable.bg_status_card
+                    : R.drawable.bg_status_error);
+            statusIconCircle.setBackgroundResource(authorized
+                    ? R.drawable.bg_icon_blue
+                    : R.drawable.bg_icon_error);
+            statusIcon.setImageResource(authorized
+                    ? R.drawable.ic_check_circle
+                    : R.drawable.ic_error_circle);
+            status.setText(!running
+                    ? R.string.shizuku_not_running
+                    : authorized
+                            ? R.string.shizuku_authorized
+                            : R.string.shizuku_not_authorized);
+            statusDetail.setText(!running
+                    ? getString(R.string.shizuku_start_tap)
+                    : authorized
+                            ? getString(R.string.shizuku_type, Shizuku.getUid())
+                            : getString(R.string.shizuku_tap));
+            trustedCard.setVisibility(running ? View.VISIBLE : View.GONE);
+            installCard.setVisibility(running ? View.VISIBLE : View.GONE);
+            int count = new TrustedStore(this).trustedPackages().size();
             trustedCount.setText(getResources().getQuantityString(
                     R.plurals.authorized_apps, count, count));
         });
@@ -177,7 +209,14 @@ public final class MainActivity extends LocalizedActivity {
     private void requestShizuku() {
         try {
             if (!Shizuku.pingBinder()) {
-                Toast.makeText(this, R.string.start_shizuku_first, Toast.LENGTH_LONG).show();
+                Intent launch = getPackageManager()
+                        .getLaunchIntentForPackage("moe.shizuku.privileged.api");
+                if (launch == null) {
+                    Toast.makeText(this, R.string.start_shizuku_first,
+                            Toast.LENGTH_LONG).show();
+                } else {
+                    startActivity(launch);
+                }
             } else if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
                 refreshStatus();
             } else if (Shizuku.shouldShowRequestPermissionRationale()) {
@@ -190,6 +229,16 @@ public final class MainActivity extends LocalizedActivity {
             Toast.makeText(this,
                     getString(R.string.shizuku_error, exception.getMessage()),
                     Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void openSupport() {
+        try {
+            startActivity(new Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse(getString(R.string.settings_support_url))));
+        } catch (ActivityNotFoundException exception) {
+            Toast.makeText(this, R.string.settings_unable_to_open, Toast.LENGTH_LONG).show();
         }
     }
 

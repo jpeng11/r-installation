@@ -15,7 +15,7 @@ requirements are:
 - accept both ordinary APKs and common split-package archive formats.
 
 The new application ID is `dev.jpeng.rinstaller`. The current version is
-`0.4.0` (`versionCode` 4), and its localized launcher name is
+`0.5.0` (`versionCode` 5), and its localized launcher name is
 **R-安装组件** / **R-Installation components**.
 
 ## 2. Clean-room statement and legacy audit
@@ -67,20 +67,30 @@ third-party dependencies.
 ### Main process
 
 - `MainActivity` displays Shizuku state, opens the document picker, and opens
-  the trusted-source manager. Its settings menu lets the owner choose System
-  default, English, or Simplified Chinese.
+  the trusted-source manager. It reproduces the legacy unavailable,
+  unauthorized, and ready states while keeping GitHub support available.
+- `SettingsActivity` recreates the safe, relevant part of the legacy
+  preference surface: Shizuku backend status, silent-install and completion
+  message switches, trusted sources, default-installer guidance, language,
+  appearance, private payload-cache cleanup, version, and support.
 - `AppLanguage` uses Android's application-locale API on Android 13 and newer.
   On Android 9–12 it applies the same persisted choice through a localized
   configuration context, so language switching works across the supported
-  API range.
+  API range. English, Simplified Chinese, and Traditional Chinese are explicit
+  choices.
+- `AppAppearance` persists System, Light, or Dark and applies the selected
+  resource configuration across API 28–36.
 - `TrustedSourcesActivity` lists installed packages and lets the owner approve
   or revoke them. It follows the legacy icon/name/package/switch row design,
   adds the missing full installed-app list, and searches displayed app names
   as well as package IDs.
-- `TrustedStore` records a package name plus the SHA-256 digest of its signing
-  certificate.
+- `TrustedStore` records a package name plus the SHA-256 digest of its current
+  signing certificate, revalidates it before every trusted decision, and
+  removes stale entries for uninstalled apps.
 - `InstallActivity` receives install intents, resolves the caller, prepares
-  payloads, evaluates policy, and displays confirmation when required.
+  payloads, evaluates policy, and displays confirmation when required. It can
+  authorize or open Shizuku in place and retry preparation/installation
+  without losing the incoming request.
 - `CallerVerifier` accepts Android-provided launch identity, result-call
   identity, or ownership of every supplied content URI. It records referrer
   identity only for display and never treats it as verified.
@@ -119,6 +129,7 @@ The policy is intentionally fail-closed:
 | Package on allowlist | Keeps control with the device owner. |
 | Pinned certificate matches | Prevents a different signer from taking over an approved package name. |
 | Shizuku ready and authorized | Ensures the operation actually runs inside the intended privilege boundary. |
+| Silent-install master enabled | Lets the owner disable all automatic installs without clearing the allowlist. |
 
 All checks must pass. If one fails, the user sees the source, payload, identity
 method, allowlist state, and an install button. Referrer strings and arbitrary
@@ -150,6 +161,10 @@ sharing with `ActivityOptions.setShareIdentityEnabled(true)`.
 Supported direct payloads are `.apk` files. Supported containers are `.apks`,
 `.apkm`, `.xapk`, and `.zip`; only `.apk` members are extracted. Safeguards:
 
+- opaque, numeric, `.1`, and extensionless vendor payload names are normalized
+  to a private `base.apk`;
+- an APK reported as `application/zip` remains a direct APK unless its filename
+  explicitly has a supported container suffix;
 - private, per-request cache directory with randomized name;
 - path components stripped and filenames sanitized;
 - duplicate names made unique;
@@ -171,10 +186,12 @@ replace the app's Shizuku and trusted-source policy. The app does **not**
 request storage, accessibility, device-admin, root, notification, or
 background execution permissions.
 
-`InstallActivity` is exported for install intents. `MainActivity` is exported
-only as the launcher. `TrustedSourcesActivity` is internal. Shizuku's required
-provider is exported with `INTERACT_ACROSS_USERS_FULL`, following Shizuku's
-integration contract.
+`InstallActivity` is exported for install intents and excluded from Recents.
+`MainActivity` is exported only as the launcher. `SettingsActivity` is
+exported only through Android's standard `APPLICATION_PREFERENCES` entry point;
+its controls still require user interaction. `TrustedSourcesActivity` is
+internal. Shizuku's required provider is exported with
+`INTERACT_ACROSS_USERS_FULL`, following Shizuku's integration contract.
 
 ## 8. Physical-device validation
 
@@ -195,7 +212,7 @@ Validated on 2026-07-26:
 | Verified caller | Debug fixture resolved as `dev.jpeng.rinstaller.fixture` via OS caller identity |
 | Silent single-APK reinstall | Success; 2,458,258 bytes streamed and package update completed |
 | Confirmation screen | No system package-installer confirmation appeared for the trusted fixture |
-| Unit tests | Silent policy requires all four authorization conditions |
+| Unit tests | Silent policy requires all five authorization conditions |
 
 The debug fixture exists only to make the identity-sharing and update path
 deterministic. It is not part of the production application and should be
@@ -206,7 +223,7 @@ removed from a user device after validation.
 Validated on an AOSP Android 14 (API 34) emulator after a report that 应用宝's
 installation flow did not detect R-安装组件:
 
-| Intent shape | v0.3.0 before fix | v0.4.0 |
+| Intent shape | v0.3.0 before fix | v0.5.0 |
 | --- | --- | --- |
 | `INSTALL_PACKAGE`, `content://`, no MIME type | Not offered | `InstallActivity` resolves |
 | `VIEW`, standard APK MIME type | Resolves | Resolves |
@@ -215,7 +232,7 @@ installation flow did not detect R-安装组件:
 
 The failure occurred before Shizuku or trusted-source policy evaluation:
 Android had no matching intent filter through which to deliver these
-vendor-style requests. Version 0.4.0 adds the missing no-MIME and vendor-MIME
+vendor-style requests. Version 0.5.0 adds the missing no-MIME and vendor-MIME
 filters. Requests whose caller identity is not verifiable still open the
 confirmation screen instead of silently installing.
 
@@ -223,6 +240,35 @@ The debug fixture then exercised both added routes with a readable
 `content://` APK. The no-MIME route offered R-安装组件 in Android's chooser and
 the vendor-MIME route opened it directly; both reached the confirmation UI
 with the payload name and size populated.
+
+Additional emulator checks verified that numeric/vendor payload names and APKs
+reported as ZIP normalize correctly, the confirmation page retains its payload
+while Shizuku authorization is requested, stopped Shizuku changes the primary
+action to **Open Shizuku**, returning preserves the request, and failed
+operations expose explicit non-looping retries. The automated
+`test-tools/verify-intent-routing.sh` refuses physical devices by default.
+
+### Physical 应用宝 checklist
+
+For the next connected-phone validation:
+
+1. Install the signed build, start Shizuku, authorize R-安装组件, and confirm the
+   home status is ready.
+2. In **Settings → Approved source apps**, search `应用宝` or
+   `com.tencent.android.qqdownloader`, approve it, and leave the silent-install
+   master switch enabled.
+3. Clear any remembered Android installer default, download a small known APK
+   through 应用宝, and begin its install flow.
+4. Confirm Android offers or directly opens R-安装组件. If the caller/provider
+   identity cannot be verified, the expected safe result is the R-安装组件
+   confirmation page—not automatic installation.
+5. Confirm the payload name/size loads, authorize/open Shizuku in place if
+   prompted, tap install when confirmation is required, and verify the target
+   package appears or updates.
+6. Record the received action, MIME, URI authority, flags, displayed identity,
+   confirmation versus automatic path, package-manager result, and relevant
+   `logcat` lines. Do not record the URI's private token or downloaded user
+   data.
 
 ## 9. Build, test, and release
 
@@ -275,9 +321,14 @@ local allowlist. Future public releases can update public v0.3.0 in place.
 - Container parsing installs every APK member and does not yet select ABI,
   locale, or density splits from large universal archives.
 - Only one install request runs at a time.
-- All primary owner-facing screens and controls are localized in English and
-  Simplified Chinese. Low-level payload, package-manager, or Shizuku failure
-  details may remain in English so their original diagnostic text is preserved.
+- All primary owner-facing screens and controls are localized in English,
+  Simplified Chinese, and Traditional Chinese. Low-level payload,
+  package-manager, or Shizuku failure details may remain in English so their
+  original diagnostic text is preserved.
+- Root, System(Hook), Magisk/SU commands, all-files access, icon hiding,
+  uninstall blocking, clearing other apps' caches, and launcher manipulation
+  from the legacy app are deliberately not reproduced. They are unnecessary
+  for Shizuku installation and would add dangerous or deceptive privileges.
 - `QUERY_ALL_PACKAGES` and `REQUEST_INSTALL_PACKAGES` are sensitive under
   Google Play policy. If Play distribution is desired, replace the global
   picker with explicit package entry or a narrower discovery mechanism and

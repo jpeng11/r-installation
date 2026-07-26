@@ -7,13 +7,16 @@
     <string name="language_system">跟随系统</string>
     <string name="language_english">English</string>
     <string name="language_chinese">简体中文</string>
+    <string name="language_traditional_chinese">繁體中文</string>
     <string name="language_settings_row">语言</string>
     <string name="close">关闭</string>
     <string name="manage">管理</string>
     <string name="shizuku_authorized">R-安装组件 已授权</string>
     <string name="shizuku_not_authorized">R-安装组件 未授权</string>
+    <string name="shizuku_not_running">R-安装组件 未运行</string>
     <string name="shizuku_type">类型 Shizuku（ADB），UID %1$d</string>
     <string name="shizuku_tap">点按以通过 Shizuku 授权</string>
+    <string name="shizuku_start_tap">点按以打开并启动 Shizuku</string>
     <string name="silent_install_title">静默安装</string>
     <string name="manage_authorized_apps">点按以管理授权的应用</string>
     <string name="choose_package_title">选择安装包</string>
@@ -34,6 +37,17 @@
     <string name="preparing_payload">正在准备 APK 安装包…</string>
     <string name="allow_downgrade">允许降级安装</string>
     <string name="install_with_shizuku">使用 Shizuku 安装</string>
+    <string name="open_shizuku">打开 Shizuku</string>
+    <string name="authorize_shizuku">授权 Shizuku</string>
+    <string name="authorizing_shizuku">正在请求 Shizuku 授权…</string>
+    <string name="shizuku_start_and_return">请启动 Shizuku，然后返回此处。此安装包会保持就绪。</string>
+    <string name="shizuku_not_installed">尚未安装 Shizuku。请安装并启动 Shizuku 服务，然后返回此处。此安装包会保持就绪。</string>
+    <string name="shizuku_unable_to_open">无法打开 Shizuku。</string>
+    <string name="shizuku_permission_required_here">Shizuku 正在运行。请授权本应用以继续。</string>
+    <string name="shizuku_waiting_for_permission">正在等待 Shizuku 授权…</string>
+    <string name="preparing_payload_button">正在准备安装包…</string>
+    <string name="retry_payload">重新加载安装包</string>
+    <string name="retry_installation">重试安装</string>
     <string name="cancel">取消</string>
     <string name="source_identity_summary">%1$s\n身份：%2$s\n允许列表：%3$s</string>
     <string name="identity_verified">已验证</string>
@@ -45,8 +59,12 @@
     <string name="payload_part">%1$s · %2$d B\n</string>
     <string name="shizuku_not_ready">Shizuku 尚未就绪。请打开主界面并授予权限。</string>
     <string name="unable_to_prepare_payload">无法准备安装包</string>
+    <string name="payload_preparation_failed">无法准备此安装包：%1$s</string>
     <string name="installing_silently">可信来源已验证，正在静默安装…</string>
     <string name="installing_with_shizuku">正在使用 Shizuku 安装…</string>
+    <string name="installation_failed_retry">%1$s\n点按“重试安装”以再次尝试。</string>
+    <string name="no_error_details">未提供错误详情。</string>
+    <string name="shizuku_error_prefix">Shizuku 错误：</string>
     <string name="installation_completed">安装完成。</string>
     <string name="unknown_source">未知来源</string>
     <string name="source_description">%1$s · %2$s</string>
@@ -90,6 +108,7 @@
         <item>@string/language_system</item>
         <item>@string/language_english</item>
         <item>@string/language_chinese</item>
+        <item>@string/language_traditional_chinese</item>
     </string-array>
     <string-array name="appearance_options">
         <item>@string/appearance_system</item>

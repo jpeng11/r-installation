@@ -280,6 +280,7 @@ public final class SettingsActivity extends LocalizedActivity {
         return getText(switch (index) {
             case 1 -> R.string.language_english;
             case 2 -> R.string.language_chinese;
+            case 3 -> R.string.language_traditional_chinese;
             default -> R.string.language_system;
         });
     }

@@ -1,6 +1,7 @@
 package dev.jpeng.rinstaller;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Button;
@@ -10,6 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import dev.jpeng.rinstaller.service.PrivilegedInstallerService;
+import rikka.shizuku.Shizuku;
 
 import java.io.IOException;
 import java.util.List;
@@ -17,6 +19,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class InstallActivity extends LocalizedActivity {
+    private static final int REQUEST_SHIZUKU = 4201;
+
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     private TextView sourceView;
@@ -27,14 +31,47 @@ public final class InstallActivity extends LocalizedActivity {
 
     private PayloadPreparer.PreparedPayload payload;
     private CallerVerifier.Identity identity;
+    private List<Uri> requestUris = List.of();
     private boolean silentEligible;
     private boolean installing;
+    private boolean preparing;
+    private boolean retryInstallAvailable;
+    private boolean permissionRequestPending;
+    private boolean permissionDenied;
+    private boolean automaticInstallAttempted;
+    private CharSequence operationMessage;
+    private int requestGeneration;
+
+    private final Shizuku.OnBinderReceivedListener binderReceivedListener =
+            () -> runOnUiThread(this::onShizukuStateChanged);
+    private final Shizuku.OnBinderDeadListener binderDeadListener =
+            () -> runOnUiThread(this::onShizukuStateChanged);
+    private final Shizuku.OnRequestPermissionResultListener permissionResultListener =
+            (requestCode, grantResult) -> {
+                if (requestCode != REQUEST_SHIZUKU) {
+                    return;
+                }
+                runOnUiThread(() -> {
+                    permissionRequestPending = false;
+                    permissionDenied = grantResult != PackageManager.PERMISSION_GRANTED;
+                    onShizukuStateChanged();
+                });
+            };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         buildUi();
+        Shizuku.addBinderReceivedListener(binderReceivedListener);
+        Shizuku.addBinderDeadListener(binderDeadListener);
+        Shizuku.addRequestPermissionResultListener(permissionResultListener);
         process(getIntent());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        onShizukuStateChanged();
     }
 
     @Override
@@ -49,6 +86,11 @@ public final class InstallActivity extends LocalizedActivity {
 
     @Override
     protected void onDestroy() {
+        requestGeneration++;
+        executor.shutdownNow();
+        Shizuku.removeBinderReceivedListener(binderReceivedListener);
+        Shizuku.removeBinderDeadListener(binderDeadListener);
+        Shizuku.removeRequestPermissionResultListener(permissionResultListener);
         if (!installing) {
             closePayload();
         }
@@ -75,7 +117,7 @@ public final class InstallActivity extends LocalizedActivity {
         page.addView(statusView);
 
         installButton = Ui.button(
-                this, getString(R.string.install_with_shizuku), view -> beginInstall(false));
+                this, getString(R.string.install_with_shizuku), view -> handlePrimaryAction());
         installButton.setEnabled(false);
         page.addView(installButton);
         page.addView(Ui.button(this, getString(R.string.cancel), view -> {
@@ -85,15 +127,17 @@ public final class InstallActivity extends LocalizedActivity {
     }
 
     private void process(Intent intent) {
-        List<Uri> uris = PayloadPreparer.extractUris(intent);
-        identity = CallerVerifier.resolve(this, uris);
-        TrustedStore store = new TrustedStore(this);
-        boolean trusted = store.isTrusted(identity.packageName());
-        silentEligible = InstallPolicy.mayInstallSilently(
-                identity.verified(),
-                store.packages().contains(identity.packageName()),
-                trusted,
-                ShizukuBridge.isReady());
+        int generation = ++requestGeneration;
+        requestUris = PayloadPreparer.extractUris(intent);
+        preparing = false;
+        retryInstallAvailable = false;
+        permissionDenied = false;
+        automaticInstallAttempted = false;
+        operationMessage = null;
+
+        identity = CallerVerifier.resolve(this, requestUris);
+        boolean trusted = new TrustedStore(this).isTrusted(identity.packageName());
+        updateSilentEligibility();
 
         sourceView.setText(getString(
                 R.string.source_identity_summary,
@@ -105,11 +149,27 @@ public final class InstallActivity extends LocalizedActivity {
         statusView.setText(silentEligible
                 ? R.string.trusted_request_automatic
                 : R.string.confirmation_required);
+        preparePayload(generation, false);
+    }
 
+    private void preparePayload(int generation, boolean installAfterPreparation) {
+        if (preparing || installing) {
+            return;
+        }
+        preparing = true;
+        operationMessage = null;
+        payloadView.setText(R.string.preparing_payload);
+        refreshPrimaryAction();
         executor.execute(() -> {
             try {
-                PayloadPreparer.PreparedPayload prepared = PayloadPreparer.prepare(this, uris);
+                PayloadPreparer.PreparedPayload prepared =
+                        PayloadPreparer.prepare(this, requestUris);
                 runOnUiThread(() -> {
+                    if (generation != requestGeneration || isFinishing() || isDestroyed()) {
+                        prepared.close();
+                        return;
+                    }
+                    preparing = false;
                     payload = prepared;
                     StringBuilder description = new StringBuilder();
                     long total = 0;
@@ -124,26 +184,196 @@ public final class InstallActivity extends LocalizedActivity {
                             prepared.parts.size(),
                             total));
                     payloadView.setText(description.toString());
-                    installButton.setEnabled(ShizukuBridge.isReady());
-                    if (!ShizukuBridge.isReady()) {
-                        statusView.setText(R.string.shizuku_not_ready);
-                    } else if (silentEligible) {
+                    retryInstallAvailable = false;
+                    operationMessage = null;
+                    updateSilentEligibility();
+                    refreshPrimaryAction();
+                    if (installAfterPreparation && ShizukuBridge.isReady()) {
+                        beginInstall(false);
+                    } else if (silentEligible && !automaticInstallAttempted) {
                         beginInstall(true);
                     }
                 });
             } catch (IOException exception) {
                 runOnUiThread(() -> {
+                    if (generation != requestGeneration || isFinishing() || isDestroyed()) {
+                        return;
+                    }
+                    preparing = false;
+                    retryInstallAvailable = installAfterPreparation;
                     payloadView.setText(R.string.unable_to_prepare_payload);
-                    statusView.setText(exception.getMessage());
+                    operationMessage = getString(
+                            R.string.payload_preparation_failed,
+                            safeMessage(exception.getMessage()));
+                    refreshPrimaryAction();
                 });
             }
         });
     }
 
-    private void beginInstall(boolean automatic) {
-        if (payload == null || installing) {
+    private void handlePrimaryAction() {
+        if (installing) {
             return;
         }
+        if (!ShizukuBridge.isRunning()) {
+            openShizuku();
+            return;
+        }
+        if (!ShizukuBridge.hasPermission()) {
+            requestShizukuPermission();
+            return;
+        }
+        if (preparing) {
+            return;
+        }
+        if (payload == null) {
+            preparePayload(requestGeneration, retryInstallAvailable);
+            return;
+        }
+        beginInstall(false);
+    }
+
+    private void requestShizukuPermission() {
+        try {
+            permissionRequestPending = true;
+            permissionDenied = false;
+            operationMessage = null;
+            refreshPrimaryAction();
+            Shizuku.requestPermission(REQUEST_SHIZUKU);
+        } catch (RuntimeException exception) {
+            permissionRequestPending = false;
+            operationMessage = getString(
+                    R.string.shizuku_error, safeMessage(exception.getMessage()));
+            refreshPrimaryAction();
+        }
+    }
+
+    private void openShizuku() {
+        Intent launch = getPackageManager().getLaunchIntentForPackage(
+                "moe.shizuku.privileged.api");
+        if (launch == null) {
+            operationMessage = getString(R.string.shizuku_not_installed);
+            refreshPrimaryAction();
+            return;
+        }
+        try {
+            startActivity(launch);
+        } catch (RuntimeException exception) {
+            operationMessage = getString(R.string.shizuku_unable_to_open);
+            refreshPrimaryAction();
+        }
+    }
+
+    private void onShizukuStateChanged() {
+        if (isFinishing() || isDestroyed()) {
+            return;
+        }
+        Intent shizukuLaunch = getPackageManager().getLaunchIntentForPackage(
+                "moe.shizuku.privileged.api");
+        if (operationMessage != null
+                && (operationMessage.toString().equals(getString(R.string.shizuku_unable_to_open))
+                || (shizukuLaunch != null
+                && operationMessage.toString().equals(getString(R.string.shizuku_not_installed))))) {
+            operationMessage = null;
+        }
+        if (ShizukuBridge.hasPermission()) {
+            permissionRequestPending = false;
+            permissionDenied = false;
+            if (operationMessage != null
+                    && operationMessage.toString().startsWith(getString(R.string.shizuku_error_prefix))) {
+                operationMessage = null;
+            }
+        }
+        updateSilentEligibility();
+        refreshPrimaryAction();
+        if (payload != null
+                && !preparing
+                && !installing
+                && silentEligible
+                && !automaticInstallAttempted
+                && operationMessage == null) {
+            beginInstall(true);
+        }
+    }
+
+    private void refreshPrimaryAction() {
+        if (installButton == null || statusView == null) {
+            return;
+        }
+        if (installing) {
+            installButton.setEnabled(false);
+            return;
+        }
+        if (!ShizukuBridge.isRunning()) {
+            installButton.setText(R.string.open_shizuku);
+            installButton.setEnabled(true);
+            statusView.setText(operationMessage != null
+                    ? operationMessage
+                    : getText(R.string.shizuku_start_and_return));
+            return;
+        }
+        if (!ShizukuBridge.hasPermission()) {
+            installButton.setText(permissionRequestPending
+                    ? R.string.authorizing_shizuku
+                    : R.string.authorize_shizuku);
+            installButton.setEnabled(!permissionRequestPending);
+            if (operationMessage != null) {
+                statusView.setText(operationMessage);
+            } else if (permissionRequestPending) {
+                statusView.setText(R.string.shizuku_waiting_for_permission);
+            } else {
+                statusView.setText(permissionDenied
+                        ? R.string.shizuku_permission_not_granted
+                        : R.string.shizuku_permission_required_here);
+            }
+            return;
+        }
+        if (preparing) {
+            installButton.setText(R.string.preparing_payload_button);
+            installButton.setEnabled(false);
+            statusView.setText(R.string.preparing_payload);
+            return;
+        }
+        if (payload == null) {
+            installButton.setText(retryInstallAvailable
+                    ? R.string.retry_installation
+                    : R.string.retry_payload);
+            installButton.setEnabled(!requestUris.isEmpty());
+            statusView.setText(operationMessage != null
+                    ? operationMessage
+                    : getText(R.string.unable_to_prepare_payload));
+            return;
+        }
+        installButton.setText(R.string.install_with_shizuku);
+        installButton.setEnabled(true);
+        statusView.setText(operationMessage != null
+                ? operationMessage
+                : getText(silentEligible
+                        ? R.string.trusted_request_automatic
+                        : R.string.confirmation_required));
+    }
+
+    private void updateSilentEligibility() {
+        if (identity == null) {
+            silentEligible = false;
+            return;
+        }
+        TrustedStore store = new TrustedStore(this);
+        boolean trusted = store.isTrusted(identity.packageName());
+        silentEligible = InstallPolicy.mayInstallSilently(
+                identity.verified(),
+                store.packages().contains(identity.packageName()),
+                trusted,
+                ShizukuBridge.isReady(),
+                new InstallerSettings(this).isSilentInstallEnabled());
+    }
+
+    private void beginInstall(boolean automatic) {
+        if (payload == null || installing || !ShizukuBridge.isReady()) {
+            refreshPrimaryAction();
+            return;
+        }
+        automaticInstallAttempted = true;
         installing = true;
         installButton.setEnabled(false);
         downgrade.setEnabled(false);
@@ -162,18 +392,36 @@ public final class InstallActivity extends LocalizedActivity {
         ShizukuBridge.install(this, payload, sourcePackage, flags, result -> {
             installing = false;
             boolean success = result != null && result.startsWith("Success");
-            statusView.setText(success ? getString(R.string.installation_completed) : result);
-            closePayload();
+            statusView.setText(success
+                    ? getString(R.string.installation_completed)
+                    : safeMessage(result));
             Intent response = new Intent().putExtra(Intent.EXTRA_TEXT, result);
             setResult(success ? RESULT_OK : RESULT_CANCELED, response);
             if (success) {
-                Toast.makeText(this, R.string.installation_completed, Toast.LENGTH_LONG).show();
+                closePayload();
+                if (new InstallerSettings(this).isCompletionToastEnabled()) {
+                    Toast.makeText(
+                            this,
+                            R.string.installation_completed,
+                            Toast.LENGTH_LONG).show();
+                }
                 finish();
             } else {
-                installButton.setEnabled(false);
+                closePayload();
+                retryInstallAvailable = true;
+                operationMessage = getString(
+                        R.string.installation_failed_retry,
+                        safeMessage(result));
                 downgrade.setEnabled(true);
+                refreshPrimaryAction();
             }
         });
+    }
+
+    private String safeMessage(String value) {
+        return value == null || value.isBlank()
+                ? getString(R.string.no_error_details)
+                : value;
     }
 
     private String identityDescription(CallerVerifier.Identity value) {

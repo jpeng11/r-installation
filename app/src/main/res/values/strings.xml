@@ -7,13 +7,16 @@
     <string name="language_system">System default</string>
     <string name="language_english">English</string>
     <string name="language_chinese">Simplified Chinese</string>
+    <string name="language_traditional_chinese">Traditional Chinese</string>
     <string name="language_settings_row">Language</string>
     <string name="close">Close</string>
     <string name="manage">Manage</string>
     <string name="shizuku_authorized">R-Installation components Authorized</string>
     <string name="shizuku_not_authorized">R-Installation components not authorized</string>
+    <string name="shizuku_not_running">R-Installation components not running</string>
     <string name="shizuku_type">Type Shizuku (ADB), UID %1$d</string>
     <string name="shizuku_tap">Tap to authorize with Shizuku</string>
+    <string name="shizuku_start_tap">Tap to open and start Shizuku</string>
     <string name="silent_install_title">Silent Installation</string>
     <string name="manage_authorized_apps">Tap to manage authorized apps</string>
     <string name="choose_package_title">Choose installation package</string>
@@ -34,6 +37,17 @@
     <string name="preparing_payload">Preparing APK payload…</string>
     <string name="allow_downgrade">Allow version downgrade</string>
     <string name="install_with_shizuku">Install with Shizuku</string>
+    <string name="open_shizuku">Open Shizuku</string>
+    <string name="authorize_shizuku">Authorize Shizuku</string>
+    <string name="authorizing_shizuku">Authorizing Shizuku…</string>
+    <string name="shizuku_start_and_return">Start Shizuku, then return here. This package will remain ready.</string>
+    <string name="shizuku_not_installed">Shizuku is not installed. Install Shizuku, start its service, then return here. This package will remain ready.</string>
+    <string name="shizuku_unable_to_open">Unable to open Shizuku.</string>
+    <string name="shizuku_permission_required_here">Shizuku is running. Authorize this app to continue.</string>
+    <string name="shizuku_waiting_for_permission">Waiting for Shizuku permission…</string>
+    <string name="preparing_payload_button">Preparing package…</string>
+    <string name="retry_payload">Retry loading package</string>
+    <string name="retry_installation">Retry installation</string>
     <string name="cancel">Cancel</string>
     <string name="source_identity_summary">%1$s\nIdentity: %2$s\nAllowlist: %3$s</string>
     <string name="identity_verified">verified</string>
@@ -45,8 +59,12 @@
     <string name="payload_part">%1$s · %2$d B\n</string>
     <string name="shizuku_not_ready">Shizuku is not ready. Open the main screen and grant permission.</string>
     <string name="unable_to_prepare_payload">Unable to prepare payload</string>
+    <string name="payload_preparation_failed">Unable to prepare this package: %1$s</string>
     <string name="installing_silently">Trusted source verified. Installing silently…</string>
     <string name="installing_with_shizuku">Installing with Shizuku…</string>
+    <string name="installation_failed_retry">%1$s\nTap Retry installation to try again.</string>
+    <string name="no_error_details">No error details were provided.</string>
+    <string name="shizuku_error_prefix">Shizuku error:</string>
     <string name="installation_completed">Installation completed.</string>
     <string name="unknown_source">Unknown source</string>
     <string name="source_description">%1$s · %2$s</string>
@@ -91,6 +109,7 @@
         <item>@string/language_system</item>
         <item>@string/language_english</item>
         <item>@string/language_chinese</item>
+        <item>@string/language_traditional_chinese</item>
     </string-array>
     <string-array name="appearance_options">
         <item>@string/appearance_system</item>

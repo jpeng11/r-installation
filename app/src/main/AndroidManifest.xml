@@ -33,12 +33,19 @@
         <activity
             android:name=".SettingsActivity"
             android:label="@string/settings"
-            android:exported="false" />
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".InstallActivity"
             android:label="@string/install_package"
+            android:excludeFromRecents="true"
             android:exported="true"
+            android:finishOnTaskLaunch="true"
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
