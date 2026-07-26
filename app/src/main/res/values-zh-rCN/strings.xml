@@ -88,11 +88,12 @@
     <string name="settings_silent_install_summary">允许已验证且经你批准的来源应用自动安装</string>
     <string name="settings_trusted_sources_title">已批准的来源应用</string>
     <string name="settings_trusted_sources_summary">按应用名称或包名搜索，并选择可静默安装的应用</string>
-    <string name="settings_download_monitor_title">检测已批准应用的下载</string>
-    <string name="settings_download_monitor_summary">使用 Shizuku 监视已批准应用的私有下载文件夹。开启“静默安装”后，新 APK 会自动安装；否则你会收到检查通知</string>
+    <string name="settings_download_monitor_title">常驻显示下载检测通知</string>
+    <string name="settings_download_monitor_summary">在通知栏中常驻显示通知，同时监视已批准应用商店的下载。关闭后会隐藏通知并暂停文件夹检测；直接打开 APK 安装仍可使用</string>
     <string name="settings_download_monitor_requires_shizuku">启用下载检测前，请先启动 Shizuku 并授予权限。</string>
     <string name="settings_download_monitor_requires_notifications">需要通知权限，才能显示检测到的 APK 供你检查。</string>
     <string name="settings_download_monitor_failed">无法启动下载检测。</string>
+    <string name="settings_download_monitor_stopped">已隐藏常驻通知并暂停文件夹检测。直接打开 APK 安装仍可使用。</string>
     <string name="settings_default_installer_title">APK 打开方式</string>
     <string name="settings_default_installer_summary">点按检查 Android 会打开哪个安装程序</string>
     <string name="settings_default_installer_guidance">Android 没有公开接口允许应用在后台将自己设为默认 APK 安装程序。请启动安全测试，然后选择 R-安装组件；如果 Android 提供“始终”，请选择它。测试不使用真实 APK，无法安装任何应用。如果打开了其他安装程序，请按返回。明确指定系统安装程序的应用商店无法改用本应用。</string>

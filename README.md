@@ -4,7 +4,7 @@ R Installer Next is a clean-room Android package installer built for modern
 Android releases. It uses a Shizuku user service running as Android's `shell`
 user to install APKs and split-package bundles without a system confirmation
 dialog when—and only when—the request comes from a user-approved, verified
-source app. Version 0.7.0 also has an optional foreground monitor for direct
+source app. Version 0.7.1 also has an optional foreground monitor for direct
 APK files newly written under an approved store's app-specific download tree.
 
 The project does not contain code or assets from the older `R-安装组件`
@@ -47,8 +47,9 @@ public release.
 - Single-APK and split-package installation through a Shizuku user service.
 - Confirmation UI for requests that do not satisfy the silent-install policy.
 - Master silent-install and completion-message settings.
-- Opt-in approved-store folder monitoring for new direct APK files, including
-  a mandatory foreground status notification.
+- Opt-in approved-store folder monitoring for new direct APK files. Its
+  Settings switch clearly controls both continuous detection and Android's
+  mandatory foreground status notification.
 - Two unchanged snapshots are required before a monitored file is registered.
 Shizuku opens it read-only through a short-lived capability, its SHA-256 is
 rechecked, and it is copied into private staging before package inspection.
@@ -74,14 +75,16 @@ this boundary.
 
 This is the workaround for stores such as 应用宝 on firmware where the store
 opens the system Package Installer directly. Approve the store under **Manage
-trusted source apps**, then explicitly enable **Detect approved app downloads**
+trusted source apps**, then explicitly enable **Always-on download notification**
 in Settings. Android notification permission and a running, already-authorized
 Shizuku server are required. The app does not request Shizuku authorization
 again for each detected APK; if that existing grant or the server becomes
 unavailable, monitoring pauses or fails closed.
 
-While enabled, a foreground notification remains visible. Disabling app
-notifications or either monitor channel disables the monitor rather than
+While enabled, a foreground notification remains visible. Turning the setting
+off removes the status notification immediately and pauses folder detection;
+direct APK handling remains available. Disabling app notifications or either
+monitor channel disables the monitor rather than
 silently losing an alert. The first scan
 records a baseline and does not act on existing files. A new `.apk` or `.apk.1`
 must have the same size and modification time in two consecutive five-second

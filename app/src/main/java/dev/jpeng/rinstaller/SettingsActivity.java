@@ -192,6 +192,10 @@ public final class SettingsActivity extends LocalizedActivity {
         if (!enabled) {
             installerSettings.setDownloadMonitorEnabled(false);
             StoreDownloadMonitorService.stop(this);
+            Toast.makeText(
+                    this,
+                    R.string.settings_download_monitor_stopped,
+                    Toast.LENGTH_LONG).show();
             return;
         }
         if (!ShizukuBridge.isReady()) {

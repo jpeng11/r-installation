@@ -15,7 +15,7 @@ requirements are:
 - accept both ordinary APKs and common split-package archive formats.
 
 The new application ID is `dev.jpeng.rinstaller`. The current version is
-`0.7.0` (`versionCode` 7), and its localized launcher name is
+`0.7.1` (`versionCode` 8), and its localized launcher name is
 **R-安装组件** / **R-Installation components**.
 
 ## 2. Clean-room statement and legacy audit
@@ -71,7 +71,8 @@ third-party dependencies.
   unauthorized, and ready states while keeping GitHub support available.
 - `SettingsActivity` recreates the safe, relevant part of the legacy
   preference surface: Shizuku backend status, silent-install and completion
-  message switches, opt-in approved-store download monitoring, trusted sources,
+  message switches, an explicit always-on notification/download-monitor
+  switch, trusted sources,
   installer-routing diagnostics and a safe resolver test, language,
   appearance, private payload-cache cleanup, version, and support.
 - `AppLanguage` uses Android's application-locale API on Android 13 and newer.
@@ -169,11 +170,15 @@ setting, and completion-message setting are persistent. Once Shizuku permission
 has been granted, the monitor does not request authorization again for every
 file. If the grant is revoked or the server stops, it pauses or fails closed.
 Automatic monitoring always uses a foreground service and visible status
-notification. Disabling app notifications, the status channel, or the review
-channel disables monitoring instead of allowing an undeliverable alert to be
-marked handled. If silent install is on, the enabled completion-message setting
-emits start, success, and failure toasts; if silent install is off, a
-notification opens the explicit review screen.
+notification. Android does not permit this continuous monitor to run reliably
+with its foreground notification hidden, so the Settings switch controls both:
+turning it off removes the notification immediately and pauses folder
+detection, while direct APK handling remains available. Disabling app
+notifications, the status channel, or the review channel likewise disables
+monitoring instead of allowing an undeliverable alert to be marked handled. If
+silent install is on, the enabled completion-message setting emits start,
+success, and failure toasts; if silent install is off, a notification opens the
+explicit review screen.
 
 ## 5. Silent-install policy
 

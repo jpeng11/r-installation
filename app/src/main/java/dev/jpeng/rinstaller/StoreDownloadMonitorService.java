@@ -111,6 +111,7 @@ public final class StoreDownloadMonitorService extends Service {
         handler.removeCallbacksAndMessages(null);
         stagingExecutor.shutdownNow();
         StoreMonitorBridge.disconnect(this);
+        stopForeground(STOP_FOREGROUND_REMOVE);
         super.onDestroy();
     }
 

@@ -88,11 +88,12 @@
     <string name="settings_silent_install_summary">Allow verified, approved source apps to install automatically</string>
     <string name="settings_trusted_sources_title">Approved source apps</string>
     <string name="settings_trusted_sources_summary">Search installed apps by name or package and choose which may install silently</string>
-    <string name="settings_download_monitor_title">Detect approved app downloads</string>
-    <string name="settings_download_monitor_summary">Watch approved apps’ private download folders with Shizuku. When Silent installation is on, new APKs install automatically; otherwise you receive a review alert</string>
+    <string name="settings_download_monitor_title">Always-on download notification</string>
+    <string name="settings_download_monitor_summary">Keep a notification in the panel while R-Install watches approved app-store downloads. Turn this off to hide the notification and pause folder detection; direct APK opening still works</string>
     <string name="settings_download_monitor_requires_shizuku">Start and authorize Shizuku before enabling download detection.</string>
     <string name="settings_download_monitor_requires_notifications">Notification permission is required so detected APKs can be shown for review.</string>
     <string name="settings_download_monitor_failed">Download detection could not be started.</string>
+    <string name="settings_download_monitor_stopped">Persistent notification hidden and folder detection paused. Direct APK installation still works.</string>
     <string name="settings_default_installer_title">APK opening behavior</string>
     <string name="settings_default_installer_summary">Tap to check which installer Android opens</string>
     <string name="settings_default_installer_guidance">Android has no public API that lets an app silently make itself the default APK installer. Start the safe test, then select R-Installation components and “Always” if Android offers it. The test uses no real APK and cannot install anything. If another installer opens, press Back. Stores that explicitly target the system installer cannot be redirected to this app.</string>
