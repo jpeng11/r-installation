@@ -7,6 +7,7 @@
     <string name="language_system">System default</string>
     <string name="language_english">English</string>
     <string name="language_chinese">Simplified Chinese</string>
+    <string name="language_settings_row">Language</string>
     <string name="close">Close</string>
     <string name="manage">Manage</string>
     <string name="shizuku_authorized">R-Installation components Authorized</string>
@@ -54,10 +55,47 @@
     <string name="method_content_provider">content provider</string>
     <string name="method_referrer">unverified referrer</string>
     <string name="method_unknown">unknown method</string>
+    <string name="settings_category_installation">Installation</string>
+    <string name="settings_category_language">Language</string>
+    <string name="settings_category_appearance">Appearance</string>
+    <string name="settings_category_storage">Storage</string>
+    <string name="settings_category_about">About</string>
+    <string name="settings_backend_title">Installation backend</string>
+    <string name="settings_backend_ready">Shizuku is ready and authorized</string>
+    <string name="settings_backend_not_ready">Shizuku is not ready · Tap to open Shizuku</string>
+    <string name="settings_shizuku_missing">Shizuku is not installed. Install Shizuku, start its service, then return here to authorize R-Installation components.</string>
+    <string name="settings_completion_toast_title">Show completion message</string>
+    <string name="settings_completion_toast_summary">Show a brief message after an installation completes</string>
+    <string name="settings_silent_install_title">Silent installation</string>
+    <string name="settings_silent_install_summary">Allow verified, approved source apps to install automatically</string>
+    <string name="settings_trusted_sources_title">Approved source apps</string>
+    <string name="settings_trusted_sources_summary">Search installed apps by name or package and choose which may install silently</string>
+    <string name="settings_default_installer_title">Default installer</string>
+    <string name="settings_default_installer_summary">Android controls installer defaults and chooser behavior</string>
+    <string name="settings_default_installer_guidance">Android chooses which compatible installers to offer. The next time an app store asks to install an APK, choose R-Installation components. If Android offers an “Always” option, select it to remember your choice. This app cannot silently make itself the default.</string>
+    <string name="settings_open_app_info">Open app info</string>
+    <string name="settings_appearance_title">Dark theme</string>
+    <string name="appearance_system">Follow system</string>
+    <string name="appearance_light">Light</string>
+    <string name="appearance_dark">Dark</string>
+    <string name="settings_clear_cache_title">Clear temporary packages</string>
+    <string name="settings_clear_cache_summary">Remove only temporary APK copies created by this app</string>
+    <string name="settings_clearing_cache">Clearing temporary packages…</string>
+    <string name="settings_about_summary">Version %1$s</string>
+    <string name="settings_about_message">R-Installation components %1$s\n\nA clean-room installer for Android 9–16 using Shizuku. Automatic installation is limited to verified source apps whose signing certificate you approve.</string>
+    <string name="settings_support_title">Support and feedback</string>
+    <string name="settings_support_summary">Open the project on GitHub</string>
+    <string name="settings_support_url" translatable="false">https://github.com/jpeng11/r-installation</string>
+    <string name="settings_unable_to_open">No app is available to open this page.</string>
     <string-array name="language_options">
         <item>@string/language_system</item>
         <item>@string/language_english</item>
         <item>@string/language_chinese</item>
+    </string-array>
+    <string-array name="appearance_options">
+        <item>@string/appearance_system</item>
+        <item>@string/appearance_light</item>
+        <item>@string/appearance_dark</item>
     </string-array>
     <plurals name="authorized_apps">
         <item quantity="one">Allowed %d app to install silently</item>
@@ -66,5 +104,9 @@
     <plurals name="payload_summary">
         <item quantity="one">%1$d APK part · %2$d B</item>
         <item quantity="other">%1$d APK parts · %2$d B</item>
+    </plurals>
+    <plurals name="settings_cache_removed">
+        <item quantity="one">Removed %d temporary package folder.</item>
+        <item quantity="other">Removed %d temporary package folders.</item>
     </plurals>
 </resources>
