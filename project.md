@@ -211,6 +211,18 @@ app/build/outputs/apk/debug/app-debug.apk
 The Gradle release output is unsigned by design. Public artifacts are aligned
 and signed outside Gradle so no signing secret enters the repository.
 
+`.github/workflows/android-apk.yml` provides the automated build path:
+
+- pushes and pull requests run unit tests, lint, and the debug APK build;
+- non-PR runs decode the protected signing key, build, align, sign, and verify
+  the release APK, then retain it as a GitHub Actions artifact; and
+- `v*` tag runs create or update the matching GitHub Release assets.
+
+The workflow uses four protected repository secrets:
+`ANDROID_SIGNING_KEY_BASE64`, `ANDROID_SIGNING_STORE_PASSWORD`,
+`ANDROID_SIGNING_KEY_PASSWORD`, and `ANDROID_SIGNING_KEY_ALIAS`. Secrets are
+not available to pull-request signing steps because those steps are skipped.
+
 First public release record:
 
 | Property | Value |
