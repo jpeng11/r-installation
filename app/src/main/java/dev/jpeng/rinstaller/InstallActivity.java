@@ -1,6 +1,5 @@
 package dev.jpeng.rinstaller;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,7 +16,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public final class InstallActivity extends Activity {
+public final class InstallActivity extends LocalizedActivity {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     private TextView sourceView;
@@ -59,26 +58,27 @@ public final class InstallActivity extends Activity {
     private void buildUi() {
         LinearLayout page = Ui.page(this);
 
-        page.addView(Ui.heading(this, "Source"));
-        sourceView = Ui.text(this, "Resolving source…", 15);
+        page.addView(Ui.heading(this, getString(R.string.source)));
+        sourceView = Ui.text(this, getString(R.string.resolving_source), 15);
         page.addView(sourceView);
 
-        page.addView(Ui.heading(this, "Payload"));
-        payloadView = Ui.text(this, "Preparing APK payload…", 15);
+        page.addView(Ui.heading(this, getString(R.string.payload)));
+        payloadView = Ui.text(this, getString(R.string.preparing_payload), 15);
         page.addView(payloadView);
 
         downgrade = new CheckBox(this);
-        downgrade.setText("Allow version downgrade");
+        downgrade.setText(R.string.allow_downgrade);
         page.addView(downgrade);
 
         statusView = Ui.text(this, "", 15);
         statusView.setPadding(0, Ui.dp(this, 14), 0, 0);
         page.addView(statusView);
 
-        installButton = Ui.button(this, "Install with Shizuku", view -> beginInstall(false));
+        installButton = Ui.button(
+                this, getString(R.string.install_with_shizuku), view -> beginInstall(false));
         installButton.setEnabled(false);
         page.addView(installButton);
-        page.addView(Ui.button(this, "Cancel", view -> {
+        page.addView(Ui.button(this, getString(R.string.cancel), view -> {
             setResult(RESULT_CANCELED);
             finish();
         }));
@@ -95,12 +95,16 @@ public final class InstallActivity extends Activity {
                 trusted,
                 ShizukuBridge.isReady());
 
-        sourceView.setText(identity.description()
-                + "\nIdentity: " + (identity.verified() ? "verified" : "not verified")
-                + "\nAllowlist: " + (trusted ? "trusted" : "not trusted"));
+        sourceView.setText(getString(
+                R.string.source_identity_summary,
+                identityDescription(identity),
+                getString(identity.verified()
+                        ? R.string.identity_verified
+                        : R.string.identity_not_verified),
+                getString(trusted ? R.string.source_trusted : R.string.source_not_trusted)));
         statusView.setText(silentEligible
-                ? "Trusted request: installation will start automatically."
-                : "Confirmation is required for this request.");
+                ? R.string.trusted_request_automatic
+                : R.string.confirmation_required);
 
         executor.execute(() -> {
             try {
@@ -111,26 +115,25 @@ public final class InstallActivity extends Activity {
                     long total = 0;
                     for (PayloadPreparer.Part part : prepared.parts) {
                         total += part.size();
-                        description.append(part.name())
-                                .append(" · ")
-                                .append(part.size())
-                                .append(" bytes\n");
+                        description.append(getString(
+                                R.string.payload_part, part.name(), part.size()));
                     }
-                    description.append(prepared.parts.size())
-                            .append(" APK part(s), ")
-                            .append(total)
-                            .append(" bytes total");
+                    description.append(getResources().getQuantityString(
+                            R.plurals.payload_summary,
+                            prepared.parts.size(),
+                            prepared.parts.size(),
+                            total));
                     payloadView.setText(description.toString());
                     installButton.setEnabled(ShizukuBridge.isReady());
                     if (!ShizukuBridge.isReady()) {
-                        statusView.setText("Shizuku is not ready. Open the main screen and grant permission.");
+                        statusView.setText(R.string.shizuku_not_ready);
                     } else if (silentEligible) {
                         beginInstall(true);
                     }
                 });
             } catch (IOException exception) {
                 runOnUiThread(() -> {
-                    payloadView.setText("Unable to prepare payload");
+                    payloadView.setText(R.string.unable_to_prepare_payload);
                     statusView.setText(exception.getMessage());
                 });
             }
@@ -145,8 +148,8 @@ public final class InstallActivity extends Activity {
         installButton.setEnabled(false);
         downgrade.setEnabled(false);
         statusView.setText(automatic
-                ? "Trusted source verified. Installing silently…"
-                : "Installing with Shizuku…");
+                ? R.string.installing_silently
+                : R.string.installing_with_shizuku);
 
         int flags = PrivilegedInstallerService.FLAG_REPLACE
                 | PrivilegedInstallerService.FLAG_ALLOW_TEST_ONLY;
@@ -159,18 +162,32 @@ public final class InstallActivity extends Activity {
         ShizukuBridge.install(this, payload, sourcePackage, flags, result -> {
             installing = false;
             boolean success = result != null && result.startsWith("Success");
-            statusView.setText(result);
+            statusView.setText(success ? getString(R.string.installation_completed) : result);
             closePayload();
             Intent response = new Intent().putExtra(Intent.EXTRA_TEXT, result);
             setResult(success ? RESULT_OK : RESULT_CANCELED, response);
             if (success) {
-                Toast.makeText(this, "Installation completed.", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, R.string.installation_completed, Toast.LENGTH_LONG).show();
                 finish();
             } else {
                 installButton.setEnabled(false);
                 downgrade.setEnabled(true);
             }
         });
+    }
+
+    private String identityDescription(CallerVerifier.Identity value) {
+        if (value.packageName() == null) {
+            return getString(R.string.unknown_source);
+        }
+        int method = switch (value.method()) {
+            case OS_CALLER -> R.string.method_os_caller;
+            case RESULT_CALLER -> R.string.method_result_caller;
+            case CONTENT_PROVIDER -> R.string.method_content_provider;
+            case REFERRER_ONLY -> R.string.method_referrer;
+            case UNKNOWN -> R.string.method_unknown;
+        };
+        return getString(R.string.source_description, value.packageName(), getString(method));
     }
 
     private void closePayload() {

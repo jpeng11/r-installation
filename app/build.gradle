@@ -10,8 +10,8 @@ android {
         applicationId "dev.jpeng.rinstaller"
         minSdk 28
         targetSdk 36
-        versionCode 2
-        versionName "0.2.0"
+        versionCode 3
+        versionName "0.3.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -19,6 +19,12 @@ android {
     buildFeatures {
         aidl true
         buildConfig true
+    }
+
+    bundle {
+        language {
+            enableSplit = false
+        }
     }
 
     buildTypes {

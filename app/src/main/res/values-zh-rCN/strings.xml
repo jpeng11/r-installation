@@ -3,6 +3,10 @@
     <string name="back">返回</string>
     <string name="settings">设置</string>
     <string name="about">关于</string>
+    <string name="language_settings_title">设置 · 语言</string>
+    <string name="language_system">跟随系统</string>
+    <string name="language_english">English</string>
+    <string name="language_chinese">简体中文</string>
     <string name="close">关闭</string>
     <string name="manage">管理</string>
     <string name="shizuku_authorized">R-安装组件 已授权</string>
@@ -19,8 +23,46 @@
     <string name="loading_apps">正在加载已安装的应用…</string>
     <string name="cannot_pin_certificate">无法固定此应用的签名证书。</string>
     <string name="start_shizuku_first">请先启动 Shizuku。</string>
+    <string name="shizuku_permission_not_granted">未授予 Shizuku 权限。</string>
+    <string name="shizuku_permission_denied">Shizuku 权限已被永久拒绝。请在 Shizuku 的已授权应用中启用本应用。</string>
+    <string name="shizuku_error">Shizuku 错误：%1$s</string>
     <string name="about_message">面向 Android 16、使用 Shizuku 的现代安装组件。只有身份经过验证且签名证书已由你批准的应用才能静默安装。</string>
+    <string name="source">来源</string>
+    <string name="resolving_source">正在识别来源…</string>
+    <string name="payload">安装包</string>
+    <string name="preparing_payload">正在准备 APK 安装包…</string>
+    <string name="allow_downgrade">允许降级安装</string>
+    <string name="install_with_shizuku">使用 Shizuku 安装</string>
+    <string name="cancel">取消</string>
+    <string name="source_identity_summary">%1$s\n身份：%2$s\n允许列表：%3$s</string>
+    <string name="identity_verified">已验证</string>
+    <string name="identity_not_verified">未验证</string>
+    <string name="source_trusted">已信任</string>
+    <string name="source_not_trusted">未信任</string>
+    <string name="trusted_request_automatic">可信请求：安装将自动开始。</string>
+    <string name="confirmation_required">此请求需要你确认。</string>
+    <string name="payload_part">%1$s · %2$d B\n</string>
+    <string name="shizuku_not_ready">Shizuku 尚未就绪。请打开主界面并授予权限。</string>
+    <string name="unable_to_prepare_payload">无法准备安装包</string>
+    <string name="installing_silently">可信来源已验证，正在静默安装…</string>
+    <string name="installing_with_shizuku">正在使用 Shizuku 安装…</string>
+    <string name="installation_completed">安装完成。</string>
+    <string name="unknown_source">未知来源</string>
+    <string name="source_description">%1$s · %2$s</string>
+    <string name="method_os_caller">系统调用方</string>
+    <string name="method_result_caller">结果调用方</string>
+    <string name="method_content_provider">内容提供方</string>
+    <string name="method_referrer">未验证的引用来源</string>
+    <string name="method_unknown">未知方式</string>
+    <string-array name="language_options">
+        <item>@string/language_system</item>
+        <item>@string/language_english</item>
+        <item>@string/language_chinese</item>
+    </string-array>
     <plurals name="authorized_apps">
         <item quantity="other">已允许 %d 个应用静默安装</item>
+    </plurals>
+    <plurals name="payload_summary">
+        <item quantity="other">%1$d 个 APK 部件 · %2$d B</item>
     </plurals>
 </resources>

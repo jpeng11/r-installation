@@ -15,7 +15,7 @@ requirements are:
 - accept both ordinary APKs and common split-package archive formats.
 
 The new application ID is `dev.jpeng.rinstaller`. The current version is
-`0.2.0` (`versionCode` 2), and its localized launcher name is
+`0.3.0` (`versionCode` 3), and its localized launcher name is
 **R-安装组件** / **R-Installation components**.
 
 ## 2. Clean-room statement and legacy audit
@@ -62,7 +62,12 @@ third-party dependencies.
 ### Main process
 
 - `MainActivity` displays Shizuku state, opens the document picker, and opens
-  the trusted-source manager.
+  the trusted-source manager. Its settings menu lets the owner choose System
+  default, English, or Simplified Chinese.
+- `AppLanguage` uses Android's application-locale API on Android 13 and newer.
+  On Android 9–12 it applies the same persisted choice through a localized
+  configuration context, so language switching works across the supported
+  API range.
 - `TrustedSourcesActivity` lists installed packages and lets the owner approve
   or revoke them. It follows the legacy icon/name/package/switch row design,
   adds the missing full installed-app list, and searches displayed app names
@@ -174,6 +179,8 @@ Validated on 2026-07-26:
 | App install | Success |
 | Shizuku authorization | “Allow all the time”; ready state confirmed |
 | Legacy-style UI | Home cards and icon/name/package/switch manager visually checked against the installed 2.6.9-beta app |
+| Language setting | Live switching verified for System default (`[]`), English (`[en]`), and Simplified Chinese (`[zh-CN]`); authorization state remained intact |
+| Chinese install UI | Source, payload, downgrade, install, cancel, and error labels verified on the physical device |
 | Trusted app picker | 应用宝 found as `com.tencent.android.qqdownloader` and certificate pinned |
 | App-name search | Live displayed-name search returned `1Password`; unit coverage verifies partial and full Chinese-name searches for `应用宝` |
 | Verified caller | Debug fixture resolved as `dev.jpeng.rinstaller.fixture` via OS caller identity |
@@ -223,9 +230,9 @@ before the first public artifact.
 - Container parsing installs every APK member and does not yet select ABI,
   locale, or density splits from large universal archives.
 - Only one install request runs at a time.
-- The owner-facing home and trusted-source screens are localized in English and
-  Simplified Chinese. Some operational error details originate from Android or
-  Shizuku and may remain in the system language.
+- All primary owner-facing screens and controls are localized in English and
+  Simplified Chinese. Low-level payload, package-manager, or Shizuku failure
+  details may remain in English so their original diagnostic text is preserved.
 - `QUERY_ALL_PACKAGES` is sensitive under Google Play policy. If Play
   distribution is desired, replace the global picker with explicit package
   entry or a narrower discovery mechanism.

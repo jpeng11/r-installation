@@ -1,6 +1,5 @@
 package dev.jpeng.rinstaller;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -16,7 +15,7 @@ import android.widget.Toolbar;
 
 import rikka.shizuku.Shizuku;
 
-public final class MainActivity extends Activity {
+public final class MainActivity extends LocalizedActivity {
     private static final int REQUEST_SHIZUKU = 4101;
     private static final int REQUEST_DOCUMENT = 4102;
     private static final int MENU_SETTINGS = 1;
@@ -33,7 +32,8 @@ public final class MainActivity extends Activity {
                 if (requestCode == REQUEST_SHIZUKU) {
                     refreshStatus();
                     if (grantResult != PackageManager.PERMISSION_GRANTED) {
-                        Toast.makeText(this, "Shizuku permission was not granted.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, R.string.shizuku_permission_not_granted,
+                                Toast.LENGTH_LONG).show();
                     }
                 }
             };
@@ -70,9 +70,11 @@ public final class MainActivity extends Activity {
         toolbar.getMenu().add(0, MENU_ABOUT, 1, R.string.about)
                 .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
         toolbar.setOnMenuItemClickListener(item -> {
-            showAbout(item.getItemId() == MENU_SETTINGS
-                    ? R.string.settings
-                    : R.string.about);
+            if (item.getItemId() == MENU_SETTINGS) {
+                showSettings();
+            } else {
+                showAbout();
+            }
             return true;
         });
         root.addView(toolbar);
@@ -133,9 +135,23 @@ public final class MainActivity extends Activity {
         return params;
     }
 
-    private void showAbout(int titleResource) {
+    private void showSettings() {
         new android.app.AlertDialog.Builder(this)
-                .setTitle(titleResource)
+                .setTitle(R.string.language_settings_title)
+                .setSingleChoiceItems(
+                        R.array.language_options,
+                        AppLanguage.selectedIndex(this),
+                        (dialog, which) -> {
+                            dialog.dismiss();
+                            AppLanguage.select(this, which);
+                        })
+                .setNegativeButton(R.string.close, null)
+                .show();
+    }
+
+    private void showAbout() {
+        new android.app.AlertDialog.Builder(this)
+                .setTitle(R.string.about)
                 .setMessage(R.string.about_message)
                 .setPositiveButton(R.string.manage, (dialog, which) ->
                         startActivity(new Intent(this, TrustedSourcesActivity.class)))
@@ -165,14 +181,15 @@ public final class MainActivity extends Activity {
             } else if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
                 refreshStatus();
             } else if (Shizuku.shouldShowRequestPermissionRationale()) {
-                Toast.makeText(this,
-                        "Permission was denied permanently. Enable this app in Shizuku’s authorized apps.",
+                Toast.makeText(this, R.string.shizuku_permission_denied,
                         Toast.LENGTH_LONG).show();
             } else {
                 Shizuku.requestPermission(REQUEST_SHIZUKU);
             }
         } catch (RuntimeException exception) {
-            Toast.makeText(this, "Shizuku error: " + exception.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this,
+                    getString(R.string.shizuku_error, exception.getMessage()),
+                    Toast.LENGTH_LONG).show();
         }
     }
 

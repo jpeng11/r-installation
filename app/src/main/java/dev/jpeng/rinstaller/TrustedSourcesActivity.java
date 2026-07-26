@@ -1,6 +1,5 @@
 package dev.jpeng.rinstaller;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -29,7 +28,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public final class TrustedSourcesActivity extends Activity {
+public final class TrustedSourcesActivity extends LocalizedActivity {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private TrustedStore store;
     private SourceAdapter adapter;

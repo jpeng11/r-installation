@@ -8,7 +8,6 @@ import android.net.Uri;
 import android.os.Build;
 
 import java.util.List;
-import java.util.Locale;
 
 final class CallerVerifier {
     private static final int INVALID_UID = -1;
@@ -20,15 +19,7 @@ final class CallerVerifier {
         UNKNOWN
     }
 
-    record Identity(String packageName, int uid, Method method, boolean verified) {
-        String description() {
-            if (packageName == null) {
-                return "Unknown source";
-            }
-            return packageName + " · "
-                    + method.name().toLowerCase(Locale.ROOT).replace('_', ' ');
-        }
-    }
+    record Identity(String packageName, int uid, Method method, boolean verified) {}
 
     private CallerVerifier() {}
 

@@ -3,6 +3,10 @@
     <string name="back">Back</string>
     <string name="settings">Settings</string>
     <string name="about">About</string>
+    <string name="language_settings_title">Settings · Language</string>
+    <string name="language_system">System default</string>
+    <string name="language_english">English</string>
+    <string name="language_chinese">Simplified Chinese</string>
     <string name="close">Close</string>
     <string name="manage">Manage</string>
     <string name="shizuku_authorized">R-Installation components Authorized</string>
@@ -19,9 +23,48 @@
     <string name="loading_apps">Loading installed apps…</string>
     <string name="cannot_pin_certificate">Unable to pin this app’s signing certificate.</string>
     <string name="start_shizuku_first">Start Shizuku first.</string>
+    <string name="shizuku_permission_not_granted">Shizuku permission was not granted.</string>
+    <string name="shizuku_permission_denied">Permission was denied permanently. Enable this app in Shizuku’s authorized apps.</string>
+    <string name="shizuku_error">Shizuku error: %1$s</string>
     <string name="about_message">Modern Android 16 installer using Shizuku. Silent installation is limited to verified apps whose signing certificate you approve.</string>
+    <string name="source">Source</string>
+    <string name="resolving_source">Resolving source…</string>
+    <string name="payload">Payload</string>
+    <string name="preparing_payload">Preparing APK payload…</string>
+    <string name="allow_downgrade">Allow version downgrade</string>
+    <string name="install_with_shizuku">Install with Shizuku</string>
+    <string name="cancel">Cancel</string>
+    <string name="source_identity_summary">%1$s\nIdentity: %2$s\nAllowlist: %3$s</string>
+    <string name="identity_verified">verified</string>
+    <string name="identity_not_verified">not verified</string>
+    <string name="source_trusted">trusted</string>
+    <string name="source_not_trusted">not trusted</string>
+    <string name="trusted_request_automatic">Trusted request: installation will start automatically.</string>
+    <string name="confirmation_required">Confirmation is required for this request.</string>
+    <string name="payload_part">%1$s · %2$d B\n</string>
+    <string name="shizuku_not_ready">Shizuku is not ready. Open the main screen and grant permission.</string>
+    <string name="unable_to_prepare_payload">Unable to prepare payload</string>
+    <string name="installing_silently">Trusted source verified. Installing silently…</string>
+    <string name="installing_with_shizuku">Installing with Shizuku…</string>
+    <string name="installation_completed">Installation completed.</string>
+    <string name="unknown_source">Unknown source</string>
+    <string name="source_description">%1$s · %2$s</string>
+    <string name="method_os_caller">OS caller</string>
+    <string name="method_result_caller">result caller</string>
+    <string name="method_content_provider">content provider</string>
+    <string name="method_referrer">unverified referrer</string>
+    <string name="method_unknown">unknown method</string>
+    <string-array name="language_options">
+        <item>@string/language_system</item>
+        <item>@string/language_english</item>
+        <item>@string/language_chinese</item>
+    </string-array>
     <plurals name="authorized_apps">
         <item quantity="one">Allowed %d app to install silently</item>
         <item quantity="other">Allowed %d apps to install silently</item>
+    </plurals>
+    <plurals name="payload_summary">
+        <item quantity="one">%1$d APK part · %2$d B</item>
+        <item quantity="other">%1$d APK parts · %2$d B</item>
     </plurals>
 </resources>
