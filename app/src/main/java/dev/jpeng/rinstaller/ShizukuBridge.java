@@ -31,25 +31,13 @@ final class ShizukuBridge {
 
     private ShizukuBridge() {}
 
-    static boolean isRunning() {
+    static boolean isReady() {
         try {
-            return Shizuku.pingBinder();
-        } catch (RuntimeException ignored) {
-            return false;
-        }
-    }
-
-    static boolean hasPermission() {
-        try {
-            return isRunning()
+            return Shizuku.pingBinder()
                     && Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED;
         } catch (RuntimeException ignored) {
             return false;
         }
-    }
-
-    static boolean isReady() {
-        return isRunning() && hasPermission();
     }
 
     static String status() {

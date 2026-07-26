@@ -15,19 +15,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".RoutingProbeActivity"
-            android:excludeFromRecents="true"
-            android:exported="true"
-            android:noHistory="true" />
         <provider
             android:name=".SelfApkProvider"
             android:authorities="dev.jpeng.rinstaller.fixture.payload"
-            android:exported="true"
-            android:grantUriPermissions="true" />
-        <provider
-            android:name=".DelayedApkProvider"
-            android:authorities="dev.jpeng.rinstaller.fixture.delayed"
             android:exported="true"
             android:grantUriPermissions="true" />
     </application>

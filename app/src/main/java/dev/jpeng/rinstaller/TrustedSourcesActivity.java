@@ -95,7 +95,7 @@ public final class TrustedSourcesActivity extends LocalizedActivity {
     private void loadApps() {
         executor.execute(() -> {
             PackageManager packageManager = getPackageManager();
-            Set<String> trusted = store.trustedPackages();
+            Set<String> trusted = store.packages();
             List<AppEntry> entries = new ArrayList<>();
             for (ApplicationInfo info : packageManager.getInstalledApplications(0)) {
                 if (!info.enabled || info.packageName.equals(getPackageName())) {
@@ -121,7 +121,7 @@ public final class TrustedSourcesActivity extends LocalizedActivity {
     }
 
     private void updateHelper() {
-        int count = store.trustedPackages().size();
+        int count = store.packages().size();
         String authorized = getResources().getQuantityString(
                 R.plurals.authorized_apps, count, count);
         helper.setText(getString(R.string.search_helper, authorized));
