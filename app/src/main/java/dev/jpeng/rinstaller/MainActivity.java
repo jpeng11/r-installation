@@ -3,21 +3,28 @@ package dev.jpeng.rinstaller;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.widget.Button;
+import android.view.MenuItem;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Toolbar;
 
 import rikka.shizuku.Shizuku;
 
 public final class MainActivity extends Activity {
     private static final int REQUEST_SHIZUKU = 4101;
     private static final int REQUEST_DOCUMENT = 4102;
+    private static final int MENU_SETTINGS = 1;
+    private static final int MENU_ABOUT = 2;
 
     private TextView status;
-    private Button permissionButton;
+    private TextView statusDetail;
+    private TextView trustedCount;
 
     private final Shizuku.OnBinderReceivedListener binderReceivedListener = this::refreshStatus;
     private final Shizuku.OnBinderDeadListener binderDeadListener = this::refreshStatus;
@@ -55,46 +62,106 @@ public final class MainActivity extends Activity {
     }
 
     private void buildUi() {
-        LinearLayout page = Ui.page(this);
-        page.addView(Ui.title(this, "R Installer Next"));
-        page.addView(Ui.text(this,
-                "A clean-room Android 16 installer using Shizuku for privileged package sessions. "
-                        + "Trusted source apps can hand off APK, APKS, APKM, or XAPK bundles for silent installation.",
-                16));
+        LinearLayout root = Ui.screenRoot(this);
+        Toolbar toolbar = Ui.toolbar(this, getString(R.string.app_name), false);
+        toolbar.getMenu().add(0, MENU_SETTINGS, 0, R.string.settings)
+                .setIcon(R.drawable.ic_settings)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        toolbar.getMenu().add(0, MENU_ABOUT, 1, R.string.about)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
+        toolbar.setOnMenuItemClickListener(item -> {
+            showAbout(item.getItemId() == MENU_SETTINGS
+                    ? R.string.settings
+                    : R.string.about);
+            return true;
+        });
+        root.addView(toolbar);
 
-        page.addView(Ui.heading(this, "Privilege status"));
-        status = Ui.text(this, "", 16);
-        page.addView(status);
-        permissionButton = Ui.button(this, "Grant Shizuku permission", view -> requestShizuku());
-        page.addView(permissionButton);
+        ScrollView scroll = new ScrollView(this);
+        scroll.setFillViewport(true);
+        LinearLayout page = new LinearLayout(this);
+        page.setOrientation(LinearLayout.VERTICAL);
+        page.setPadding(Ui.dp(this, 8), Ui.dp(this, 8),
+                Ui.dp(this, 8), Ui.dp(this, 24));
+        scroll.addView(page, new ScrollView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        root.addView(scroll, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
 
-        page.addView(Ui.heading(this, "Install"));
-        page.addView(Ui.button(this, "Choose APK or bundle", view -> chooseDocument()));
-        page.addView(Ui.button(this, "Manage trusted source apps",
-                view -> startActivity(new Intent(this, TrustedSourcesActivity.class))));
+        LinearLayout statusCard = Ui.homeCard(
+                this,
+                R.drawable.bg_status_card,
+                R.drawable.bg_icon_blue,
+                R.drawable.ic_check_circle,
+                "",
+                "",
+                view -> requestShizuku());
+        LinearLayout statusCopy = (LinearLayout) statusCard.getChildAt(1);
+        status = (TextView) statusCopy.getChildAt(0);
+        statusDetail = (TextView) statusCopy.getChildAt(1);
+        status.setTextColor(Color.WHITE);
+        statusDetail.setTextColor(Color.rgb(212, 240, 255));
+        page.addView(statusCard, cardParams(0));
 
-        page.addView(Ui.heading(this, "Security model"));
-        page.addView(Ui.text(this,
-                "Silent mode is enabled only when the source is on your allowlist, its signing "
-                        + "certificate still matches the pinned certificate, and Android verifies "
-                        + "the caller or ownership of the supplied content provider. Referrer strings "
-                        + "and package-name extras are never trusted.",
-                14));
+        LinearLayout trustedCard = Ui.homeCard(
+                this,
+                R.drawable.bg_home_card,
+                R.drawable.bg_icon_indigo,
+                R.drawable.ic_apps,
+                "",
+                getString(R.string.manage_authorized_apps),
+                view -> startActivity(new Intent(this, TrustedSourcesActivity.class)));
+        LinearLayout trustedCopy = (LinearLayout) trustedCard.getChildAt(1);
+        trustedCount = (TextView) trustedCopy.getChildAt(0);
+        page.addView(trustedCard, cardParams(8));
 
+        LinearLayout installCard = Ui.homeCard(
+                this,
+                R.drawable.bg_home_card,
+                R.drawable.bg_icon_teal,
+                R.drawable.ic_install,
+                getString(R.string.choose_package_title),
+                getString(R.string.choose_package_summary),
+                view -> chooseDocument());
+        page.addView(installCard, cardParams(8));
+    }
+
+    private LinearLayout.LayoutParams cardParams(int topMargin) {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.topMargin = Ui.dp(this, topMargin);
+        return params;
+    }
+
+    private void showAbout(int titleResource) {
+        new android.app.AlertDialog.Builder(this)
+                .setTitle(titleResource)
+                .setMessage(R.string.about_message)
+                .setPositiveButton(R.string.manage, (dialog, which) ->
+                        startActivity(new Intent(this, TrustedSourcesActivity.class)))
+                .setNegativeButton(R.string.close, null)
+                .show();
     }
 
     private void refreshStatus() {
         runOnUiThread(() -> {
-            String value = ShizukuBridge.status();
-            status.setText(value);
-            permissionButton.setEnabled(!ShizukuBridge.isReady());
+            boolean ready = ShizukuBridge.isReady();
+            status.setText(ready
+                    ? R.string.shizuku_authorized
+                    : R.string.shizuku_not_authorized);
+            statusDetail.setText(ready
+                    ? getString(R.string.shizuku_type, Shizuku.getUid())
+                    : getString(R.string.shizuku_tap));
+            int count = new TrustedStore(this).packages().size();
+            trustedCount.setText(getResources().getQuantityString(
+                    R.plurals.authorized_apps, count, count));
         });
     }
 
     private void requestShizuku() {
         try {
             if (!Shizuku.pingBinder()) {
-                Toast.makeText(this, "Start Shizuku first.", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, R.string.start_shizuku_first, Toast.LENGTH_LONG).show();
             } else if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
                 refreshStatus();
             } else if (Shizuku.shouldShowRequestPermissionRationale()) {

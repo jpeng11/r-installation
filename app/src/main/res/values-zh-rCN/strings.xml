@@ -1,3 +1,26 @@
 <resources>
-    <string name="app_name">R-安装组件 Next</string>
+    <string name="app_name">R-安装组件</string>
+    <string name="back">返回</string>
+    <string name="settings">设置</string>
+    <string name="about">关于</string>
+    <string name="close">关闭</string>
+    <string name="manage">管理</string>
+    <string name="shizuku_authorized">R-安装组件 已授权</string>
+    <string name="shizuku_not_authorized">R-安装组件 未授权</string>
+    <string name="shizuku_type">类型 Shizuku（ADB），UID %1$d</string>
+    <string name="shizuku_tap">点按以通过 Shizuku 授权</string>
+    <string name="silent_install_title">静默安装</string>
+    <string name="manage_authorized_apps">点按以管理授权的应用</string>
+    <string name="choose_package_title">选择安装包</string>
+    <string name="choose_package_summary">支持 APK、APKS、APKM、XAPK 和 ZIP</string>
+    <string name="install_package">安装应用</string>
+    <string name="search_app_name">搜索应用名称</string>
+    <string name="search_helper">%1$s · 可按显示的应用名称或包名搜索</string>
+    <string name="loading_apps">正在加载已安装的应用…</string>
+    <string name="cannot_pin_certificate">无法固定此应用的签名证书。</string>
+    <string name="start_shizuku_first">请先启动 Shizuku。</string>
+    <string name="about_message">面向 Android 16、使用 Shizuku 的现代安装组件。只有身份经过验证且签名证书已由你批准的应用才能静默安装。</string>
+    <plurals name="authorized_apps">
+        <item quantity="other">已允许 %d 个应用静默安装</item>
+    </plurals>
 </resources>

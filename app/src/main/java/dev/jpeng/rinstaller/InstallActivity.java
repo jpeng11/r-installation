@@ -58,7 +58,6 @@ public final class InstallActivity extends Activity {
 
     private void buildUi() {
         LinearLayout page = Ui.page(this);
-        page.addView(Ui.title(this, "Install package"));
 
         page.addView(Ui.heading(this, "Source"));
         sourceView = Ui.text(this, "Resolving source…", 15);

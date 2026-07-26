@@ -1,0 +1,14 @@
+<resources>
+    <color name="primary">#AEB7FF</color>
+    <color name="surface">#202020</color>
+    <color name="card_surface">#202020</color>
+    <color name="card_stroke">#414141</color>
+    <color name="search_surface">#303034</color>
+    <color name="text_primary">#F5F3F6</color>
+    <color name="text_secondary">#BDB9C0</color>
+    <color name="status_blue">#2E8CC6</color>
+    <color name="icon_blue">#168CE1</color>
+    <color name="icon_indigo">#3F51B5</color>
+    <color name="icon_teal">#607D8B</color>
+    <color name="icon_foreground">#E8F1FF</color>
+</resources>

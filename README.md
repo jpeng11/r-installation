@@ -14,6 +14,9 @@ define compatibility goals.
 
 - Android 16 target (`compileSdk`/`targetSdk` 36), Android 9 minimum.
 - Searchable trusted-source list; any currently installed app can be added.
+- Familiar R-安装组件 card layout, dark-mode support, app icons, and switches.
+- Trusted-source search matches the displayed app name (including Chinese
+  names such as 应用宝) as well as the package ID.
 - SHA-256 signing-certificate pinning for every trusted source.
 - Verified caller checks using Android caller identity and content-provider
   ownership; referrer strings and package-name extras are never trusted.

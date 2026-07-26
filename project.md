@@ -14,8 +14,9 @@ requirements are:
 - require confirmation when a source cannot be verified; and
 - accept both ordinary APKs and common split-package archive formats.
 
-The new application ID is `dev.jpeng.rinstaller`, its initial version is
-`0.1.0` (`versionCode` 1), and its launcher name is **R Installer Next**.
+The new application ID is `dev.jpeng.rinstaller`. The current version is
+`0.2.0` (`versionCode` 2), and its localized launcher name is
+**R-安装组件** / **R-Installation components**.
 
 ## 2. Clean-room statement and legacy audit
 
@@ -63,7 +64,9 @@ third-party dependencies.
 - `MainActivity` displays Shizuku state, opens the document picker, and opens
   the trusted-source manager.
 - `TrustedSourcesActivity` lists installed packages and lets the owner approve
-  or revoke them.
+  or revoke them. It follows the legacy icon/name/package/switch row design,
+  adds the missing full installed-app list, and searches displayed app names
+  as well as package IDs.
 - `TrustedStore` records a package name plus the SHA-256 digest of its signing
   certificate.
 - `InstallActivity` receives install intents, resolves the caller, prepares
@@ -170,7 +173,9 @@ Validated on 2026-07-26:
 | Shizuku | 13.6.0, server UID 2000 |
 | App install | Success |
 | Shizuku authorization | “Allow all the time”; ready state confirmed |
+| Legacy-style UI | Home cards and icon/name/package/switch manager visually checked against the installed 2.6.9-beta app |
 | Trusted app picker | 应用宝 found as `com.tencent.android.qqdownloader` and certificate pinned |
+| App-name search | Live displayed-name search returned `1Password`; unit coverage verifies partial and full Chinese-name searches for `应用宝` |
 | Verified caller | Debug fixture resolved as `dev.jpeng.rinstaller.fixture` via OS caller identity |
 | Silent single-APK reinstall | Success; 2,458,258 bytes streamed and package update completed |
 | Confirmation screen | No system package-installer confirmation appeared for the trusted fixture |
@@ -218,8 +223,9 @@ before the first public artifact.
 - Container parsing installs every APK member and does not yet select ABI,
   locale, or density splits from large universal archives.
 - Only one install request runs at a time.
-- The UI is intentionally simple and currently contains some English text even
-  when the launcher name is localized.
+- The owner-facing home and trusted-source screens are localized in English and
+  Simplified Chinese. Some operational error details originate from Android or
+  Shizuku and may remain in the system language.
 - `QUERY_ALL_PACKAGES` is sensitive under Google Play policy. If Play
   distribution is desired, replace the global picker with explicit package
   entry or a narrower discovery mechanism.

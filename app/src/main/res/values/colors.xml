@@ -1,7 +1,14 @@
 <resources>
-    <color name="primary">#6750A4</color>
-    <color name="primary_dark">#4F378B</color>
-    <color name="surface">#FFFBFE</color>
-    <color name="on_surface">#1D1B20</color>
-    <color name="danger">#B3261E</color>
+    <color name="primary">#3F51B5</color>
+    <color name="surface">#FAFAFA</color>
+    <color name="card_surface">#FFFFFF</color>
+    <color name="card_stroke">#DDDDDD</color>
+    <color name="search_surface">#EEEEF2</color>
+    <color name="text_primary">#202124</color>
+    <color name="text_secondary">#68676D</color>
+    <color name="status_blue">#2E8CC6</color>
+    <color name="icon_blue">#168CE1</color>
+    <color name="icon_indigo">#3F51B5</color>
+    <color name="icon_teal">#607D8B</color>
+    <color name="icon_foreground">#E8F1FF</color>
 </resources>
