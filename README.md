@@ -10,6 +10,16 @@ The project does not contain code or assets from the older `R-安装组件`
 application. Its behavior and public Android manifest were examined only to
 define compatibility goals.
 
+## Download
+
+Download the latest signed APK from
+[GitHub Releases](https://github.com/jpeng11/r-installation/releases/latest).
+The APK and its SHA-256 checksum are published together.
+
+The public v0.3.0 APK uses the permanent release certificate. Android cannot
+update a debug-signed development build with it, so uninstall any development
+build before installing the first public release.
+
 ## Features
 
 - Android 16 target (`compileSdk`/`targetSdk` 36), Android 9 minimum.

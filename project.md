@@ -208,18 +208,31 @@ Debug output:
 app/build/outputs/apk/debug/app-debug.apk
 ```
 
-The release build is unsigned by design. Before distribution:
+The Gradle release output is unsigned by design. Public artifacts are aligned
+and signed outside Gradle so no signing secret enters the repository.
 
-1. create or select a protected release keystore outside the repository;
-2. configure signing through local/CI secrets, never committed properties;
-3. build and verify the release APK signature with `apksigner verify`;
-4. install it on API 28 and API 36 test devices;
-5. repeat APK and split-package tests, trusted and untrusted;
-6. publish SHA-256 checksums and a changelog.
+First public release record:
 
-Do not sign a public release with Android's debug key. A different signing key
-cannot update an already installed build, so choose and back up the release key
-before the first public artifact.
+| Property | Value |
+| --- | --- |
+| Release | `v0.3.0` |
+| Source commit | `ef66064694b0d3ff2da82a08cf6d07e2ae1108b8` |
+| Public page | <https://github.com/jpeng11/r-installation/releases/tag/v0.3.0> |
+| APK | `R-Installation-v0.3.0.apk` |
+| APK SHA-256 | `6a00acce22fd10238c39a31b5dd5f0bd21d77fe901171b336f8509616f090bc9` |
+| Signature scheme | APK Signature Scheme v3 |
+| Signer certificate SHA-256 | `0e2e1c077fff6d1bc97865c32489e203b078ca5620b9fd50ed1e886a9a483797` |
+| Verification | `zipalign -c`, `apksigner verify`, metadata inspection, and anonymous GitHub re-download all passed |
+
+The private release key is not committed or attached to the release. A private
+maintainer backup exists outside the repository, and its password is stored in
+the macOS Keychain entry `r-installation-release-keystore` for account
+`jpeng11`. Preserve that key: Android will reject future updates signed by a
+different certificate.
+
+The connected phone currently has a debug-signed development build. Installing
+this first public build requires uninstalling that debug build, which clears its
+local allowlist. Future public releases can update public v0.3.0 in place.
 
 ## 10. Known limitations and next work
 
