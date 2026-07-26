@@ -7,6 +7,7 @@ final class InstallerSettings {
     private static final String PREFERENCES = "installer_settings";
     private static final String SILENT_INSTALL_ENABLED = "silent_install_enabled";
     private static final String COMPLETION_TOAST_ENABLED = "completion_toast_enabled";
+    private static final String DOWNLOAD_MONITOR_ENABLED = "download_monitor_enabled";
 
     private final SharedPreferences preferences;
 
@@ -29,5 +30,13 @@ final class InstallerSettings {
 
     void setCompletionToastEnabled(boolean enabled) {
         preferences.edit().putBoolean(COMPLETION_TOAST_ENABLED, enabled).apply();
+    }
+
+    boolean isDownloadMonitorEnabled() {
+        return preferences.getBoolean(DOWNLOAD_MONITOR_ENABLED, false);
+    }
+
+    void setDownloadMonitorEnabled(boolean enabled) {
+        preferences.edit().putBoolean(DOWNLOAD_MONITOR_ENABLED, enabled).commit();
     }
 }

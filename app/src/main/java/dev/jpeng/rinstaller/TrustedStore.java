@@ -8,8 +8,11 @@ import android.content.pm.Signature;
 import android.content.pm.SigningInfo;
 
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -129,13 +132,18 @@ final class TrustedStore {
             if (signatures == null || signatures.length == 0) {
                 return null;
             }
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(signatures[0].toByteArray());
-            StringBuilder output = new StringBuilder(hash.length * 2);
-            for (byte value : hash) {
-                output.append(String.format(Locale.ROOT, "%02x", value & 0xff));
+            List<String> signerDigests = new ArrayList<>(signatures.length);
+            for (Signature signature : signatures) {
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                byte[] hash = digest.digest(signature.toByteArray());
+                StringBuilder output = new StringBuilder(hash.length * 2);
+                for (byte value : hash) {
+                    output.append(String.format(Locale.ROOT, "%02x", value & 0xff));
+                }
+                signerDigests.add(output.toString());
             }
-            return output.toString();
+            signerDigests.sort(Comparator.naturalOrder());
+            return String.join(":", signerDigests);
         } catch (Exception ignored) {
             return null;
         }

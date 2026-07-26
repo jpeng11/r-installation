@@ -1,9 +1,11 @@
 package dev.jpeng.rinstaller;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
@@ -19,7 +21,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class InstallActivity extends LocalizedActivity {
+    public static final String EXTRA_ROUTING_PROBE =
+            "dev.jpeng.rinstaller.extra.ROUTING_PROBE";
+
     private static final int REQUEST_SHIZUKU = 4201;
+    private static final String STATE_ROUTING_PROBE = "routing_probe";
+    private static final String ROUTING_PROBE_MIME =
+            "application/vnd.android.package-archive";
+    private static final Uri ROUTING_PROBE_URI =
+            Uri.parse("content://" + BuildConfig.APPLICATION_ID + ".routing/probe.apk");
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
@@ -39,6 +49,8 @@ public final class InstallActivity extends LocalizedActivity {
     private boolean permissionRequestPending;
     private boolean permissionDenied;
     private boolean automaticInstallAttempted;
+    private boolean routingProbe;
+    private AlertDialog routingProbeDialog;
     private CharSequence operationMessage;
     private int requestGeneration;
 
@@ -65,13 +77,26 @@ public final class InstallActivity extends LocalizedActivity {
         Shizuku.addBinderReceivedListener(binderReceivedListener);
         Shizuku.addBinderDeadListener(binderDeadListener);
         Shizuku.addRequestPermissionResultListener(permissionResultListener);
-        process(getIntent());
+        if (savedInstanceState != null
+                && savedInstanceState.getBoolean(STATE_ROUTING_PROBE, false)) {
+            showRoutingProbe();
+        } else {
+            process(getIntent());
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putBoolean(STATE_ROUTING_PROBE, routingProbe);
+        super.onSaveInstanceState(outState);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        onShizukuStateChanged();
+        if (!routingProbe) {
+            onShizukuStateChanged();
+        }
     }
 
     @Override
@@ -80,6 +105,7 @@ public final class InstallActivity extends LocalizedActivity {
         setIntent(intent);
         if (!installing) {
             closePayload();
+            dismissRoutingProbeDialog();
             process(intent);
         }
     }
@@ -87,6 +113,7 @@ public final class InstallActivity extends LocalizedActivity {
     @Override
     protected void onDestroy() {
         requestGeneration++;
+        dismissRoutingProbeDialog();
         executor.shutdownNow();
         Shizuku.removeBinderReceivedListener(binderReceivedListener);
         Shizuku.removeBinderDeadListener(binderDeadListener);
@@ -128,6 +155,19 @@ public final class InstallActivity extends LocalizedActivity {
 
     private void process(Intent intent) {
         int generation = ++requestGeneration;
+        Bundle extras = intent.getExtras();
+        Object probeValue = extras == null ? null : extras.get(EXTRA_ROUTING_PROBE);
+        String probeToken = probeValue instanceof String ? (String) probeValue : null;
+        boolean exactProbeIntent = Intent.ACTION_VIEW.equals(intent.getAction())
+                && ROUTING_PROBE_MIME.equals(intent.getType())
+                && ROUTING_PROBE_URI.equals(intent.getData());
+        if (exactProbeIntent && RoutingProbeStore.consume(this, probeToken)) {
+            showRoutingProbe();
+            return;
+        }
+        routingProbe = false;
+        downgrade.setVisibility(View.VISIBLE);
+        installButton.setVisibility(View.VISIBLE);
         requestUris = PayloadPreparer.extractUris(intent);
         preparing = false;
         retryInstallAvailable = false;
@@ -150,6 +190,47 @@ public final class InstallActivity extends LocalizedActivity {
                 ? R.string.trusted_request_automatic
                 : R.string.confirmation_required);
         preparePayload(generation, false);
+    }
+
+    private void showRoutingProbe() {
+        dismissRoutingProbeDialog();
+        routingProbe = true;
+        requestUris = List.of();
+        closePayload();
+        identity = null;
+        silentEligible = false;
+        installing = false;
+        preparing = false;
+        operationMessage = null;
+
+        sourceView.setText(R.string.routing_probe_source);
+        payloadView.setText(R.string.routing_probe_payload);
+        statusView.setText(R.string.routing_probe_status);
+        downgrade.setVisibility(View.GONE);
+        installButton.setVisibility(View.GONE);
+
+        routingProbeDialog = new AlertDialog.Builder(this)
+                .setTitle(R.string.routing_probe_title)
+                .setMessage(R.string.routing_probe_message)
+                .setPositiveButton(R.string.close, (ignored, which) -> {
+                    routingProbeDialog = null;
+                    setResult(RESULT_OK);
+                    finish();
+                })
+                .create();
+        routingProbeDialog.setOnCancelListener(ignored -> {
+            routingProbeDialog = null;
+            setResult(RESULT_OK);
+            finish();
+        });
+        routingProbeDialog.show();
+    }
+
+    private void dismissRoutingProbeDialog() {
+        if (routingProbeDialog != null) {
+            routingProbeDialog.dismiss();
+            routingProbeDialog = null;
+        }
     }
 
     private void preparePayload(int generation, boolean installAfterPreparation) {
@@ -265,7 +346,7 @@ public final class InstallActivity extends LocalizedActivity {
     }
 
     private void onShizukuStateChanged() {
-        if (isFinishing() || isDestroyed()) {
+        if (routingProbe || isFinishing() || isDestroyed()) {
             return;
         }
         Intent shizukuLaunch = getPackageManager().getLaunchIntentForPackage(

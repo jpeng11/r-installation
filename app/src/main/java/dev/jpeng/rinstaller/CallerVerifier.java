@@ -65,14 +65,17 @@ final class CallerVerifier {
     }
 
     private static Identity resolveProviderOwner(PackageManager pm, List<Uri> uris) {
+        if (uris.isEmpty()) {
+            return null;
+        }
         String owner = null;
         int ownerUid = INVALID_UID;
-        boolean foundContent = false;
         for (Uri uri : uris) {
-            if (uri == null || !"content".equals(uri.getScheme()) || uri.getAuthority() == null) {
-                continue;
+            if (uri == null
+                    || !"content".equals(uri.getScheme())
+                    || uri.getAuthority() == null) {
+                return null;
             }
-            foundContent = true;
             ProviderInfo provider = pm.resolveContentProvider(uri.getAuthority(), 0);
             if (provider == null || provider.applicationInfo == null) {
                 return null;
@@ -82,12 +85,16 @@ final class CallerVerifier {
             if (owner == null) {
                 owner = candidate;
                 ownerUid = candidateUid;
-            } else if (ownerUid != candidateUid) {
+            } else if (!owner.equals(candidate) || ownerUid != candidateUid) {
                 return null;
             }
         }
-        return foundContent && owner != null
-                ? new Identity(owner, ownerUid, Method.CONTENT_PROVIDER, true)
+        return owner != null
+                // URI ownership identifies the component supplying the bytes,
+                // not necessarily the app that launched this exported activity.
+                // Keep it for attribution, but never use it as silent-install
+                // authorization.
+                ? new Identity(owner, ownerUid, Method.CONTENT_PROVIDER, false)
                 : null;
     }
 
