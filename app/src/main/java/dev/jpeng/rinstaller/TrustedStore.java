@@ -31,6 +31,24 @@ final class TrustedStore {
         return new HashSet<>(stored == null ? Collections.emptySet() : stored);
     }
 
+    Set<String> trustedPackages() {
+        PackageManager packageManager = context.getPackageManager();
+        Set<String> stored = packages();
+        Set<String> trusted = new HashSet<>();
+        Set<String> stale = new HashSet<>();
+        for (String packageName : stored) {
+            String pinned = preferences.getString(SIGNATURE_PREFIX + packageName, null);
+            String current = signingDigest(packageManager, packageName);
+            if (matchesPinnedDigest(pinned, current)) {
+                trusted.add(packageName);
+            } else if (!isInstalled(packageManager, packageName)) {
+                stale.add(packageName);
+            }
+        }
+        prune(stored, stale);
+        return trusted;
+    }
+
     boolean trust(String packageName) {
         String digest = signingDigest(context.getPackageManager(), packageName);
         if (digest == null) {
@@ -60,11 +78,40 @@ final class TrustedStore {
         }
         String pinned = preferences.getString(SIGNATURE_PREFIX + packageName, null);
         String current = signingDigest(context.getPackageManager(), packageName);
-        return pinned != null && pinned.equals(current);
+        return matchesPinnedDigest(pinned, current);
     }
 
     String pinnedDigest(String packageName) {
         return preferences.getString(SIGNATURE_PREFIX + packageName, null);
+    }
+
+    static boolean matchesPinnedDigest(String pinned, String current) {
+        return pinned != null && current != null && pinned.equals(current);
+    }
+
+    private void prune(Set<String> stored, Set<String> stale) {
+        if (stale.isEmpty()) {
+            return;
+        }
+        Set<String> updated = new HashSet<>(stored);
+        updated.removeAll(stale);
+        SharedPreferences.Editor editor = preferences.edit().putStringSet(PACKAGES, updated);
+        for (String packageName : stale) {
+            editor.remove(SIGNATURE_PREFIX + packageName);
+        }
+        editor.apply();
+    }
+
+    private static boolean isInstalled(PackageManager packageManager, String packageName) {
+        try {
+            packageManager.getPackageInfo(packageName, 0);
+            return true;
+        } catch (PackageManager.NameNotFoundException exception) {
+            return false;
+        } catch (RuntimeException exception) {
+            // Do not destroy a trust record when package inspection fails transiently.
+            return true;
+        }
     }
 
     static String signingDigest(PackageManager packageManager, String packageName) {
@@ -75,9 +122,10 @@ final class TrustedStore {
             if (signingInfo == null) {
                 return null;
             }
-            Signature[] signatures = signingInfo.hasMultipleSigners()
-                    ? signingInfo.getApkContentsSigners()
-                    : signingInfo.getSigningCertificateHistory();
+            // Pin the signer on the currently installed APK. Using certificate history here
+            // would keep trusting an app after it rotates away from the certificate the user
+            // explicitly approved.
+            Signature[] signatures = signingInfo.getApkContentsSigners();
             if (signatures == null || signatures.length == 0) {
                 return null;
             }
